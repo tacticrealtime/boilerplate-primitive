@@ -1,0 +1,161 @@
+/*
+ * Global text sizes and element layout.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+h1 {
+	font-size: 1.6em;
+}
+
+h2 {
+	font-size: 1.2em;
+}
+
+button {
+	font-size: 0.8em;
+	line-height: 1;
+}
+
+small {
+	font-size: 0.75em;
+}
+
+big {
+	font-size: 1.25em;
+}
+
+sup {
+	font-size: 0.75em;
+	vertical-align: super;
+}
+
+sub {
+	font-size: 0.75em;
+	vertical-align: text-bottom;
+}
+
+a {
+	text-decoration: underline;
+}
+
+button {
+	 text-align: center;
+}
+
+/*
+ * Global font styles.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+body {
+	font-family: 'font_regular';
+}
+
+i {
+	font-family: 'font_italic';
+}
+
+b {
+	font-family: 'font_bold';
+}
+
+i b,
+b i {
+	font-family: 'font_bold_italic';
+}
+
+/*
+ * Global element styles.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+[data-key=BACKGROUND] {
+	overflow: hidden;
+	opacity: 0.8;
+}
+
+[data-key=BACKGROUND] img {
+	position: absolute;
+}
+
+[data-key=BACKGROUND] [data-key=BACKGROUND_BORDER] {
+	width: calc(100% - 4px);
+	height: calc(100% - 4px);
+	border-style: solid;
+	border-width: 2px;
+}
+
+[data-key=FOREGROUND_OVERLAY] {
+	left: calc(-200% - 1em);
+	width: calc(400% + 2em);
+	top: calc(-200% - 2em);
+	height: calc(400% + 4em);
+	min-height: 2em;
+}
+
+[data-key=MESSAGE] {
+	vertical-align: top;
+	text-align: left;
+}
+
+[data-key=MESSAGE] button {
+	padding: 0.9em 1.3em 0.7em 1.3em;
+	border-style: none;
+	border-radius: 5em;
+}
+
+[data-key=MESSAGE] [data-key=MESSAGE_TEXT_TITLE] {
+	margin: 0 0 0.5em 0;
+}
+
+[data-key=MESSAGE] [data-key=MESSAGE_TEXT_BUTTON] {
+	margin: 1em 0 0 0;
+}
+
+/*
+ * Global element colors.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+[data-key=BACKGROUND] {
+	background: #6746e5;
+}
+
+[data-key=BACKGROUND] [data-key=BACKGROUND_BORDER] {
+	border-color: rgba(0, 17, 204, 0.2);
+}
+
+[data-key=FOREGROUND] [data-key=FOREGROUND_OVERLAY] {
+	background: radial-gradient(rgba(0, 17, 204, 0.8), rgba(0, 17, 204, 0) 60%);
+}
+
+[data-key=MESSAGE] {
+	color: #fff;
+}
+
+[data-key=MESSAGE] em {
+	color: #40ece2;
+}
+
+[data-key=MESSAGE] button {
+	color: #0011cc;
+	background: #40ece2;
+}
+
+/*
+ * Global animation.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+[data-key=BACKGROUND_IMAGE],
+[data-key=MESSAGE_TEXT_TITLE],
+[data-key=MESSAGE_TEXT_CAPTION],
+[data-key=MESSAGE_TEXT_BUTTON],
+[data-key=LOGO_IMAGE] {
+	opacity: 0;
+}
+
+.fade {
+	transition: opacity 0.5s ease-out 0s;
+	opacity: 1;
+}

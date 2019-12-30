@@ -1,0 +1,237 @@
+{
+  "type": "MANIFEST",
+  "version": "1.0",
+  "author": "Anton Gorodnyanskiy",
+  "brand": "TACTIC",
+  "name": "Boilerplate",
+  "created": "27/12/2019",
+  "updated": "27/12/2019",
+  "editor": {
+    "url": "editor.html",
+    "version": "1.1"
+  },
+  "sizes": [
+    {
+      "type": "STATIC",
+      "name": "160x600",
+      "width": 160,
+      "height": 600,
+      "index": "160x600/index.min.html",
+      "fallback": {
+        "static": "160x600/fallback.png"
+      }
+    },
+    {
+      "type": "STATIC",
+      "name": "300x600",
+      "width": 300,
+      "height": 600,
+      "index": "300x600/index.min.html",
+      "fallback": {
+        "static": "300x600/fallback.png"
+      }
+    },
+    {
+      "type": "STATIC",
+      "name": "580x400",
+      "width": 580,
+      "height": 400,
+      "index": "580x400/index.min.html",
+      "fallback": {
+        "static": "580x400/fallback.png"
+      }
+    },
+    {
+      "type": "STATIC",
+      "name": "980x150",
+      "width": 980,
+      "height": 150,
+      "index": "980x150/index.min.html",
+      "fallback": {
+        "static": "980x150/fallback.png"
+      }
+    },
+    {
+      "type": "STATIC",
+      "name": "980x300",
+      "width": 980,
+      "height": 300,
+      "index": "980x300/index.min.html",
+      "fallback": {
+        "static": "980x300/fallback.png"
+      }
+    }
+  ],
+  "data": {
+    "editor": {
+      "defaults": {
+        "BACKGROUND_IMAGE": {
+          "preset": {
+            "params": {
+              "scale": "fill",
+              "polite": false,
+              "ratio": 1
+            }
+          },
+          "ratios": {
+            "size_160x600": {
+              "label": "160x600",
+              "value": "160x600"
+            },
+            "size_300x600": {
+              "label": "300x600",
+              "value": "300x600"
+            },
+            "size_580x400": {
+              "label": "580x400",
+              "value": "580x400"
+            },
+            "size_980x150": {
+              "label": "980x150",
+              "value": "980x150"
+            },
+            "size_980x300": {
+              "label": "980x300",
+              "value": "980x300"
+            }
+          }
+        }
+      }
+    },
+    "banner": {
+      "type": "BannerLayer",
+      "clicktag": {
+        "override": false,
+        "url": "https://www.tacticrealtime.com/"
+      },
+      "fonts": {
+        "font_regular": {
+          "name": "font_regular",
+          "url": "./assets/fonts/sourcecodepro-regular",
+          "types": [
+            "eot",
+            "woff",
+            "woff2",
+            "ttf"
+          ]
+        },
+        "font_italic": {
+          "name": "font_italic",
+          "url": "./assets/fonts/sourcecodepro-regular",
+          "types": [
+            "eot",
+            "woff",
+            "woff2",
+            "ttf"
+          ]
+        },
+        "font_bold": {
+          "name": "font_bold",
+          "url": "./assets/fonts/sourcecodepro-bold",
+          "types": [
+            "eot",
+            "woff",
+            "woff2",
+            "ttf"
+          ]
+        },
+        "font_bold_italic": {
+          "name": "font_bold_italic",
+          "url": "./assets/fonts/sourcecodepro-bold",
+          "types": [
+            "eot",
+            "woff",
+            "woff2",
+            "ttf"
+          ]
+        }
+      },
+      "layers": {
+        "MESSAGE": {
+          "type": "JointLayer",
+          "layers": {
+            "MESSAGE_TEXT": {
+              "type": "JointLayer",
+              "layers": {
+                "MESSAGE_TEXT_TITLE": {
+                  "type": "TextLayer",
+                  "params": {
+                    "holder": "MESSAGE_TEXT",
+                    "wrapper": "MESSAGE",
+                    "tags": [
+                      "h1"
+                    ]
+                  },
+                  "sources": [
+                    {
+                      "text": "Hello, World!"
+                    }
+                  ]
+                },
+                "MESSAGE_TEXT_CAPTION": {
+                  "type": "TextLayer",
+                  "params": {
+                    "holder": "MESSAGE_TEXT",
+                    "wrapper": "MESSAGE",
+                    "tags": [
+                      "h2"
+                    ]
+                  },
+                  "sources": [
+                    {
+                      "text": "I'm <em>dynamic creative</em> powered by TACTIC. My size is {size}."
+                    }
+                  ]
+                },
+                "MESSAGE_TEXT_BUTTON": {
+                  "type": "TextLayer",
+                  "params": {
+                    "holder": "MESSAGE_TEXT",
+                    "wrapper": "MESSAGE",
+                    "tags": [
+                      "button",
+                      "b"
+                    ]
+                  },
+                  "sources": [
+                    {
+                      "text": "Learn More"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "BACKGROUND": {
+          "type": "JointLayer",
+          "layers": {
+            "BACKGROUND_IMAGE": null
+          }
+        },
+        "LOGO": {
+          "type": "JointLayer",
+          "layers": {
+            "LOGO_IMAGE": {
+              "type": "ImageLayer",
+              "params": {
+                "scale": "fit",
+                "align": [
+                  "right",
+                  "bottom"
+                ]
+              },
+              "sources": [
+                {
+                  "width": 486,
+                  "height": 128,
+                  "url": "./assets/logo.svg"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

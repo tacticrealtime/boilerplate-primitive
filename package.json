@@ -1,0 +1,25 @@
+{
+  "name": "boilerplate",
+  "version": "1.0.0",
+  "devDependencies": {
+    "creative-minifier": "github:tacticrealtime/creative-minifier",
+    "creative-packager": "github:tacticrealtime/creative-packager",
+    "creative-validator": "github:tacticrealtime/creative-validator",
+    "fallback-generator": "github:tacticrealtime/fallback-generator",
+    "http-server": "^0.11.1"
+  },
+  "scripts": {
+    "validate": "./node_modules/creative-validator/bin/creative-validator.js . debug",
+    "validate-formats": "./node_modules/creative-validator/bin/formats-validator.js",
+    "validate-security": "./node_modules/creative-validator/bin/security-validator.js",
+    "validate-preview": "./node_modules/creative-validator/bin/preview-validator.js",
+    "fallback": "./node_modules/fallback-generator/generator.js",
+    "min": "./node_modules/creative-minifier/index.js --replace-links --globs !node_modules/* --globs !editor.html --globs !./index.html",
+    "zip": "./node_modules/creative-packager/index.js -n $npm_package_name -d",
+    "minzip": "npm run min && npm run zip",
+    "serve": "./node_modules/http-server/bin/http-server ./ -a 127.0.0.1 --cors -o -c-1"
+  },
+  "private": true,
+  "author": "TACTIC™ Real-Time Marketing",
+  "license": "GPL-3.0-or-later"
+}

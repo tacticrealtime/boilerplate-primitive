@@ -1,0 +1,186 @@
+/*
+ * Global style setup and inheritance.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+* {
+
+	/**
+	 * Reset margins and paddings.
+	 */
+	margin: 0;
+	padding: 0;
+
+	/**
+	 * Reset default element styles.
+	 */
+	position: relative;
+	zoom: 1;
+	border: none;
+	outline: none;
+	background: transparent;
+	border-spacing: 0;
+	list-style: none;
+	font-style: normal;
+
+	/**
+	 * Inherit styles for better dynamic control.
+	 */
+	border-collapse: inherit;
+	vertical-align: inherit;
+	text-align: inherit;
+	font-size: inherit;
+	font-family: inherit;
+	font-weight: inherit;
+	color: inherit;
+	border-color: inherit;
+	text-decoration: inherit;
+	line-height: inherit;
+	visibility: inherit;
+	cursor: inherit;
+
+	/**
+	 * Ignore automatic font size adjustment.
+	 */
+	-webkit-text-size-adjust: 100%;
+
+}
+
+/**
+ * Remove user select to prevent gesture issues.
+ */
+*:not(input):not(select):not(textarea) {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+
+}
+
+/*
+ * Global style defaults.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+html, body {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	background: transparent;
+}
+
+body {
+	visibility: hidden;
+	cursor: pointer;
+	vertical-align: middle;
+	text-align: center;
+	font-family: "Lucida Grande", sans-serif;
+}
+
+body.ready {
+	visibility: visible !important;
+}
+
+div, ul, li {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+*.relative {
+	position: relative;
+	width: auto;
+	height: auto;
+}
+
+*.inline {
+	display: inline-block;
+}
+
+*.empty,
+*.disabled {
+	display: none;
+}
+
+*.hidden {
+	visibility: hidden;
+}
+
+div.table {
+	display: table;
+}
+
+div.cell {
+	position: relative;
+	display: table-cell;
+}
+
+div.row {
+	position: relative;
+	display: table-row;
+}
+
+span {
+	display: block;
+}
+
+q:before,
+q:after {
+	content: normal;
+}
+
+h1, h2, h3, h4, h5, h6, p, q, em {
+	line-height: normal;
+	vertical-align: baseline;
+}
+
+a {
+	text-decoration: underline;
+}
+
+body, a, button {
+	cursor: pointer;
+}
+
+#fallback, *.fallback,
+#fallback img, *.fallback img {
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+/*
+ * Animation styles.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+*.no_animation,
+*.no_animation * {
+	animation: none !important;
+	transition: none !important;
+}
+
+*.no_animation,
+*.no_animation *,
+*.no_animation_duration,
+*.no_animation_duration * {
+	animation-duration: .0s !important;
+	transition-duration: .0s !important;
+}
+
+/*
+ * Debug mode styles.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+.mode_debug,
+.mode_debug [data-key]:not(span):not(img):not(video) {
+	box-shadow: inset 0 0 0 2px rgba(0, 255, 255, 0.5);
+}
+
+.mode_debug span,
+.mode_debug img,
+.mode_debug video {
+	box-shadow: inset 0 0 0 2px rgba(255, 0, 255, 0.5);
+}

@@ -1,0 +1,53 @@
+
+<block title="Content">
+
+	<block-label title="Message"></block-label>
+
+	<block-group>
+
+		<block-field title="Title">
+			<text-area placeholder="Text" model="$data.banner.layers.MESSAGE.layers.MESSAGE_TEXT.layers.MESSAGE_TEXT_TITLE.sources[0].text"></text-area>
+		</block-field>
+
+		<block-field title="Caption">
+			<text-area placeholder="Text" model="$data.banner.layers.MESSAGE.layers.MESSAGE_TEXT.layers.MESSAGE_TEXT_CAPTION.sources[0].text"></text-area>
+		</block-field>
+
+		<block-field title="Button">
+			<text-field placeholder="Text" model="$data.banner.layers.MESSAGE.layers.MESSAGE_TEXT.layers.MESSAGE_TEXT_BUTTON.sources[0].text"></text-field>
+		</block-field>
+
+	</block-group>
+
+	<block-label title="Background"></block-label>
+
+	<block-group>
+
+		<block-field title="Image">
+			<image-picker model="$data.banner.layers.BACKGROUND.layers.BACKGROUND_IMAGE"
+						  settings="{defaults: $data.editor.defaults.BACKGROUND_IMAGE.preset, cropping: { ratios: $data.editor.defaults.BACKGROUND_IMAGE.ratios } }"
+						  no-crop="false" no-align="true" no-cover="false" no-load="false" no-excepts="false"
+						  no-excepts-orientation="true"></image-picker>
+		</block-field>
+
+	</block-group>
+
+</block>
+
+<block title="Setup">
+
+	<block-label title="Landing Page"></block-label>
+
+	<block-group>
+
+		<block-field title="Click Tag">
+			<toggle-button model="$data.banner.clicktag.override" on="Override DSP" off="Native"></toggle-button>
+		</block-field>
+
+		<block-field title="Destination URL" ng-if="$data.banner.clicktag.override">
+			<text-field placeholder="URL" model="$data.banner.clicktag.url" pattern="https?\:\/\/.+"></text-field>
+		</block-field>
+
+	</block-group>
+
+</block>
