@@ -3,62 +3,62 @@
   "version": "1.0",
   "author": "Anton Gorodnyanskiy",
   "brand": "TACTIC",
-  "name": "Boilerplate",
+  "name": "Simple Boilerplate",
   "created": "27/12/2019",
-  "updated": "27/12/2019",
+  "updated": "05/01/2021",
   "editor": {
     "url": "editor.html",
     "version": "1.1"
   },
   "sizes": [
     {
-      "type": "STATIC",
+      "type": "FIXED",
       "name": "160x600",
       "width": 160,
       "height": 600,
-      "index": "160x600/index.min.html",
+      "index": "160x600.min.html",
       "fallback": {
-        "static": "160x600/fallback.png"
+        "static": "160x600.png"
       }
     },
     {
-      "type": "STATIC",
+      "type": "FIXED",
       "name": "300x600",
       "width": 300,
       "height": 600,
-      "index": "300x600/index.min.html",
+      "index": "300x600.min.html",
       "fallback": {
-        "static": "300x600/fallback.png"
+        "static": "300x600.png"
       }
     },
     {
-      "type": "STATIC",
+      "type": "FIXED",
       "name": "580x400",
       "width": 580,
       "height": 400,
-      "index": "580x400/index.min.html",
+      "index": "580x400.min.html",
       "fallback": {
-        "static": "580x400/fallback.png"
+        "static": "580x400.png"
       }
     },
     {
-      "type": "STATIC",
+      "type": "FIXED",
       "name": "980x150",
       "width": 980,
       "height": 150,
-      "index": "980x150/index.min.html",
+      "index": "980x150.min.html",
       "fallback": {
-        "static": "980x150/fallback.png"
+        "static": "980x150.png"
       }
     },
     {
-      "type": "STATIC",
+      "type": "FIXED",
       "name": "980x300",
       "width": 980,
       "height": 300,
-      "index": "980x300/index.min.html",
+      "index": "980x300.min.html",
       "fallback": {
-        "static": "980x300/fallback.png"
+        "static": "980x300.png"
       }
     }
   ],
@@ -108,126 +108,192 @@
         "font_regular": {
           "name": "font_regular",
           "url": "./assets/fonts/sourcecodepro-regular",
+          "selector": [
+            "div"
+          ],
           "types": [
             "eot",
             "woff",
-            "woff2",
-            "ttf"
+            "woff2"
           ]
         },
         "font_italic": {
           "name": "font_italic",
           "url": "./assets/fonts/sourcecodepro-regular",
+          "selector": [
+            "i"
+          ],
           "types": [
             "eot",
             "woff",
-            "woff2",
-            "ttf"
+            "woff2"
           ]
         },
         "font_bold": {
           "name": "font_bold",
           "url": "./assets/fonts/sourcecodepro-bold",
+          "selector": [
+            "b"
+          ],
           "types": [
             "eot",
             "woff",
-            "woff2",
-            "ttf"
+            "woff2"
           ]
         },
         "font_bold_italic": {
           "name": "font_bold_italic",
           "url": "./assets/fonts/sourcecodepro-bold",
+          "selector": [
+            "b i"
+          ],
           "types": [
             "eot",
             "woff",
-            "woff2",
-            "ttf"
+            "woff2"
           ]
         }
       },
       "layers": {
-        "MESSAGE": {
+        "CANVAS": {
           "type": "JointLayer",
+          "props": {
+            "tension": {
+              "enabled": false,
+              "options": [
+                [
+                  0,
+                  "tall_extra"
+                ],
+                [
+                  0.5,
+                  "tall"
+                ],
+                [
+                  0.7,
+                  "equal"
+                ],
+                [
+                  1.8,
+                  "wide"
+                ],
+                [
+                  4.4,
+                  "wide_extra"
+                ]
+              ]
+            },
+            "scale": {
+              "enabled": false,
+              "area": 10000,
+              "options": [
+                [
+                  0,
+                  "tiny",
+                  2
+                ],
+                [
+                  32000,
+                  "small",
+                  1
+                ],
+                [
+                  64000,
+                  "medium",
+                  0
+                ],
+                [
+                  256000,
+                  "large",
+                  0
+                ]
+              ]
+            }
+          },
           "layers": {
-            "MESSAGE_TEXT": {
+            "MESSAGE": {
               "type": "JointLayer",
               "layers": {
-                "MESSAGE_TEXT_TITLE": {
-                  "type": "TextLayer",
-                  "params": {
-                    "holder": "MESSAGE_TEXT",
-                    "wrapper": "MESSAGE",
-                    "tags": [
-                      "h1"
-                    ]
-                  },
-                  "sources": [
-                    {
-                      "text": "Hello, World!"
+                "MESSAGE_TEXT": {
+                  "type": "JointLayer",
+                  "layers": {
+                    "MESSAGE_TEXT_TITLE": {
+                      "type": "TextLayer",
+                      "params": {
+                        "holder": "MESSAGE_TEXT",
+                        "wrapper": "MESSAGE",
+                        "tags": [
+                          "h1"
+                        ]
+                      },
+                      "sources": [
+                        {
+                          "text": "Hello, World!"
+                        }
+                      ]
+                    },
+                    "MESSAGE_TEXT_DESCRIPTION": {
+                      "type": "TextLayer",
+                      "params": {
+                        "holder": "MESSAGE_TEXT",
+                        "wrapper": "MESSAGE",
+                        "tags": [
+                          "p"
+                        ]
+                      },
+                      "sources": [
+                        {
+                          "text": "I'm <em>dynamic creative</em> powered by TACTIC. My size is $[size]."
+                        }
+                      ]
+                    },
+                    "MESSAGE_TEXT_BUTTON": {
+                      "type": "TextLayer",
+                      "params": {
+                        "holder": "MESSAGE_TEXT",
+                        "wrapper": "MESSAGE",
+                        "tags": [
+                          "button",
+                          "b"
+                        ]
+                      },
+                      "sources": [
+                        {
+                          "text": "Learn More"
+                        }
+                      ]
                     }
-                  ]
-                },
-                "MESSAGE_TEXT_CAPTION": {
-                  "type": "TextLayer",
+                  }
+                }
+              }
+            },
+            "BACKGROUND": {
+              "type": "JointLayer",
+              "layers": {
+                "BACKGROUND_IMAGE": null
+              }
+            },
+            "LOGO": {
+              "type": "JointLayer",
+              "layers": {
+                "LOGO_IMAGE": {
+                  "type": "ImageLayer",
                   "params": {
-                    "holder": "MESSAGE_TEXT",
-                    "wrapper": "MESSAGE",
-                    "tags": [
-                      "h2"
+                    "scale": "fit",
+                    "align": [
+                      "right",
+                      "bottom"
                     ]
                   },
                   "sources": [
                     {
-                      "text": "I'm <em>dynamic creative</em> powered by TACTIC. My size is {size}."
-                    }
-                  ]
-                },
-                "MESSAGE_TEXT_BUTTON": {
-                  "type": "TextLayer",
-                  "params": {
-                    "holder": "MESSAGE_TEXT",
-                    "wrapper": "MESSAGE",
-                    "tags": [
-                      "button",
-                      "b"
-                    ]
-                  },
-                  "sources": [
-                    {
-                      "text": "Learn More"
+                      "width": 486,
+                      "height": 128,
+                      "url": "./assets/logo.svg"
                     }
                   ]
                 }
               }
-            }
-          }
-        },
-        "BACKGROUND": {
-          "type": "JointLayer",
-          "layers": {
-            "BACKGROUND_IMAGE": null
-          }
-        },
-        "LOGO": {
-          "type": "JointLayer",
-          "layers": {
-            "LOGO_IMAGE": {
-              "type": "ImageLayer",
-              "params": {
-                "scale": "fit",
-                "align": [
-                  "right",
-                  "bottom"
-                ]
-              },
-              "sources": [
-                {
-                  "width": 486,
-                  "height": 128,
-                  "url": "./assets/logo.svg"
-                }
-              ]
             }
           }
         }

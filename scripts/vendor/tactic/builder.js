@@ -1,10 +1,11 @@
 /**
  * TACTIC™ Creative Library
- * Copyright (C) 2019 TACTIC™ Real-Time Marketing <https://tacticrealtime.com/>
+ * Copyright (C) 2020 TACTIC™ Real-Time Marketing <https://tacticrealtime.com/>
  * Licensed under GNU GPL <https://tacticrealtime.com/license/sdk/>
  *
  * @author Anton Gorodnyanskiy
  * @date 17/11/2018
+ * @edit 23/12/2020
  */
 
 (/**
@@ -28,7 +29,12 @@ function (tactic) {
 		/**
 		 * @type {Object}
 		 */
-		layers: {}
+		layers: {},
+
+		/**
+		 * @type {Object}
+		 */
+		fonts: {}
 
 	};
 
@@ -39,6 +45,159 @@ function (tactic) {
 
 		// Lend TACTIC utility namespace.
 		utils = tactic.utils;
+
+	/**
+	 * @function
+	 * @param {Number} [speed]
+	 */
+	utils.Timeline = function (speed) {
+
+		var
+
+			/**
+			 * @type {Object}
+			 */
+			that = this,
+
+			/**
+			 * @function
+			 */
+			update = function () {
+
+				// console.log('>>>', (that.timestamp - that.date.getTime())/ 1000);
+
+				if (that.schedule[that.timestamp]) {
+
+					// console.log('>>', that.schedule[that.timestamp]);
+
+					utils.each(that.schedule[that.timestamp],
+
+						/**
+						 * @param {Object} timer
+						 */
+						function (timer) {
+							if (timer && timer.callback) {
+								timer.callback.call();
+								that.clearTimeout(timer);
+							}
+						}
+
+					);
+				}
+
+				// Increase timestamp.
+				that.timestamp += that.step;
+
+				// console.log((that.timestamp - that.date.getTime()) / 1000);
+
+			};
+
+		/**
+		 * @type {Date}
+		 */
+		this.date = new Date();
+
+		/**
+		 * @type {Number}
+		 */
+		this.timestamp = this.date.getTime();
+
+		/**
+		 * @type {Number}
+		 */
+		this.speed = utils.isTypeOf(utils.isNumber, window.TACTIC_TIMELINE_SPEED_MULTPLIER, utils.isTypeOf(utils.isNumber, speed, 1));
+
+		/**
+		 * @type {Number}
+		 */
+		this.rate = 10;
+
+		/**
+		 * @type {Number}
+		 */
+		this.step = Math.round((this.rate < 0 ? 0 : this.rate) * (this.speed < 0 ? 0 : this.speed));
+
+		/**
+		 * @type {Object}
+		 */
+		this.schedule = {};
+
+		/**
+		 * @function
+		 * @param {Function} callback
+		 * @param {Number} delay
+		 */
+		this.setTimeout = function (callback, delay) {
+
+			// Check if callback and delay values are provided.
+			if (callback && !isNaN(delay)) {
+
+				var
+
+					/**
+					 * Create timestamp when timeout will be requested.
+					 * Ensure that timestamp value will be inline with time step.
+					 *
+					 * @type {Number}
+					 */
+					timestamp = that.timestamp + (Math.round(delay / that.step) * that.step) + that.step;
+
+				// Check if time slot is not created.
+				if (!that.schedule[timestamp]) {
+
+					// Create new time slot.
+					that.schedule[timestamp] = [];
+
+				}
+
+				var
+
+					/**
+					 * @type {Object}
+					 */
+					timer = {
+
+						/**
+						 * @type {Number}
+						 */
+						id: NaN,
+
+						/**
+						 * @type {Number}
+						 */
+						timestamp: timestamp,
+
+						/**
+						 * @type {Function}
+						 */
+						callback: callback
+
+					};
+
+				// Push timer to schedule register and create timer ID.
+				timer.id = that.schedule[timestamp].push(timer);
+
+				return timer;
+
+			}
+
+			return null;
+		};
+
+		/**
+		 * @function
+		 * @param {Object} timer
+		 */
+		this.clearTimeout = function (timer) {
+			if (timer) timer.callback = null;
+		};
+
+		/**
+		 * @type {Number}
+		 */
+		this.interval = setInterval(update, this.rate);
+
+	};
 
 	/**
 	 * @function
@@ -178,19 +337,27 @@ function (tactic) {
 	 * @param {Array} sources - Media sources.
 	 * @param {Number} width - Container width.
 	 * @param {Number} height - Container height.
+	 * @param {Number} [limit_min] - Container minimal width or height.
+	 * @param {Number} [limit_max] - Container maximal width or height.
 	 * @return {Object}
 	 * @description Provides proper image or video source size finder based on holder width and height.
 	 */
-	utils.getAssetSource = function (sources, width, height) {
+	utils.getAssetSource = function (sources, width, height, limit_min, limit_max) {
 
-		/**
-		 * Define default source object.
-		 * @type {Object}
-		 */
-		var source = {};
+		var
+
+			/**
+			 * Define default source object.
+			 * @type {Object}
+			 */
+			source = {};
 
 		// Check if sources are provided.
 		if (sources) {
+
+			// Validate dimension limits.
+			limit_min = isNaN(limit_min) ? 0 : limit_min;
+			limit_max = isNaN(limit_max) ? 1920 : limit_max;
 
 			// Sort sources by size, so the biggest size will be in front.
 			sources.sort(function (a, b) {
@@ -209,8 +376,10 @@ function (tactic) {
 			for (var i = 0; i < sources.length; i++) {
 
 				// Check if image source fits container without quality degradation, break loop if it does.
-				if (width >= sources[i].width || height >= sources[i].height) {
-					break;
+				if (sources[i].width <= limit_max && sources[i].height <= limit_max) {
+					if (width >= sources[i].width || height >= sources[i].height || source.width <= limit_min || source.height <= limit_min) {
+						break;
+					}
 				}
 
 				// Set asset source.
@@ -246,26 +415,19 @@ function (tactic) {
 			 */
 			url = utils.isObject(source) ? utils.isString(source[name]) ? source[name] : '' : (utils.isString(source) ? source : '');
 
-		var
+		if (url !== '' && !(url ? !(url.indexOf('data:image') === -1) : false)) {
 
-			/**
-			 * Define default source URL.
-			 *
-			 * @type {Boolean}
-			 */
-			internal = (url ? !(url.indexOf('data:image') === -1) : false);
+			if (url.indexOf('http') === -1 && url.slice(0, 2) !== '//') {
 
-		// Check if URL was identified.
-		// Check if URL is valid, otherwise means it is possibly local.
-		if (url !== '' && url.indexOf('http') === -1 && !internal && url.slice(0, 2) !== '//') {
+				// Add absolute package URL before local URL.
+				// NB! Sanitize asset URL before loading (will set correct protocol and traffic load indicator).
+				url = tactic.url.sanitize((tactic.url.package && tactic.url.package.length > 0) ? tactic.url.package + '/' + url : url);
 
-			// Add absolute package URL before local URL.
-			url = tactic.url.package + '/' + url;
+			}
 
 		}
 
-		// NB! Sanitize asset URL before loading (will set correct protocol and traffic load indicator).
-		return internal ? url : tactic.url.sanitize(url);
+		return url;
 	};
 
 	/**
@@ -299,145 +461,230 @@ function (tactic) {
 
 	/**
 	 * @function
-	 * @param {String} font
+	 * @param {String} key
+	 * @param {String} family
 	 * @param {Function} callback
-	 * @param {(Element|Node)} target
+	 * @param {(Element|Node)} [holder]
 	 * @param {Number} [timeout]
 	 * @description Watch font load state.
 	 */
-	utils.watchFont = function (font, target, callback, timeout) {
+	utils.watchFont = function (key, family, callback, holder, timeout) {
+
+		// Check if font is already in the check wait list.
+		if (!tactic.builder.fonts[key]) {
+
+			/**
+			 * @type {Object}
+			 */
+			tactic.builder.fonts[key] = {
+
+				/**
+				 * @type {String}
+				 */
+				key: key,
+
+				/**
+				 * @type {String}
+				 */
+				family: (family ? family : 'inherit'),
+
+				/**
+				 * @type {Element}
+				 */
+				target: document.createElement('span'),
+
+				/**
+				 * @type {Element}
+				 */
+				wrapper: document.createElement('span'),
+
+				/**
+				 * @type {Element}
+				 */
+				holder: utils.isElement(holder) ? holder : document.body,
+
+				/**
+				 * @type {Number}
+				 */
+				time: new Date().getTime(),
+
+				/**
+				 * @type {Number}
+				 */
+				timeout: utils.isNumber(timeout) ? timeout : 1000,
+
+				/**
+				 * @type {Number}
+				 */
+				width: undefined,
+
+				/**
+				 * @type {Number}
+				 */
+				height: undefined,
+
+				/**
+				 * @type {Boolean}
+				 */
+				initiated: false,
+
+				/**
+				 * @type {Boolean}
+				 */
+				success: undefined,
+
+				/**
+				 * @type {Array}
+				 */
+				callbacks: []
+
+			};
+
+		}
 
 		var
 
 			/**
-			 * @type {Number}
+			 * @type {Object}
 			 */
-			checkInterval,
+			font = tactic.builder.fonts[key],
 
 			/**
-			 * @type {Number}
+			 * @function
+			 * @param {Boolean} success - Success state.
 			 */
-			time = new Date().getTime(),
+			complete = function (success) {
+
+				// Set success flag.
+				font.success = success;
+
+				try {
+
+					// Try to remove tester element.
+					font.holder.removeChild(font.wrapper);
+
+				} catch (e) {
+				}
+
+				for (var callbackKey in font.callbacks) {
+
+					// Check if callback was defined.
+					if (utils.isFunction(font.callbacks[callbackKey])) {
+
+						// Trigger callback.
+						font.callbacks[callbackKey](font.key, font.success);
+
+						// Remove callback from the wait list.
+						font.callbacks[callbackKey] = null;
+
+					}
+
+				}
+			},
 
 			/**
-			 * @type {(Element|Node)}
+			 * @function
 			 */
-			element = document.createElement('span'),
+			analyse = function() {
 
-			/**
-			 * @type {Number}
-			 */
-			width,
+				// Check if we're out of time to wait for wont load.
+				if ((new Date().getTime() - font.time) > font.timeout) {
 
-			/**
-			 * @type {Number}
-			 */
-			height;
+					// Complete operation with negative result.
+					complete(false);
 
-		// Validate target.
-		target = utils.isElement(target) ? target : document.body;
+				}
 
-		/**
-		 * @function
-		 * @param {Boolean} success - Success state.
-		 */
-		function complete(success) {
+				// Check if container dimensions changed. Means font loaded.
+				else if (font.width !== font.target.offsetWidth || font.height !== font.target.offsetHeight) {
 
-			// Clear check interval.
-			clearInterval(checkInterval);
+					// Complete operation with positive result.
+					complete(true);
 
-			try {
+				} else {
 
-				// Try to remove tester element.
-				target.removeChild(element);
+					// Set check timer.
+					setTimeout(function () {
 
-			} catch (e) {
-			}
+						// Check again.
+						analyse();
 
-			// Check if callback was defined.
-			if (utils.isFunction(callback)) {
+					}, 10);
 
-				// Trigger event.
-				callback(font, success);
+				}
+			};
 
-			}
+		try {
 
-			return true;
-		}
+			// Add callback to the wait list.
+			font.callbacks.push(callback);
 
-		/**
-		 * @function
-		 */
-		function check() {
+			// Check if font is already in the wait list.
+			if (!font.initiated) {
 
-			// Check if we're out of time to wait for wont load.
-			if ((new Date().getTime() - time) > (utils.isNumber(timeout) ? timeout : 1000)) {
+				// Set initialisation flag.
+				font.initiated = true;
 
-				// Complete operation with negative result.
-				return complete(false);
+				var
 
-			}
+					/**
+					 * @type {Object}
+					 */
+					wrapper_style = font.wrapper.style,
 
-			// Check if container dimensions changed. Means font loaded.
-			else if (width !== element.offsetWidth || height !== element.offsetHeight) {
+					/**
+					 * @type {Object}
+					 */
+					target_style = font.target.style;
 
-				// Complete operation with positive result.
-				return complete(true);
+				wrapper_style.position = 'absolute';
+				wrapper_style.overflow = 'hidden';
+				wrapper_style.visibility = 'hidden';
 
-			} else {
+				// Define CSS parameters.
+				target_style.fontFamily = 'Times New Roman';
+				target_style.width = 'auto';
+				target_style.height = 'auto';
+				target_style.display = 'block';
+				target_style.fontSize = '48px';
+				target_style.lineHeight = 'normal';
+				target_style.color = 'transparent';
+				target_style.visibility = 'hidden';
+				target_style.fontDisplay = 'swap';
+
+				// Place text into element.
+				font.target.innerHTML = 'QW@HhsXJ1';
+
+				// Append dummy text to wrapper.
+				font.wrapper.appendChild(font.target);
+
+				// Append wrapper to custom holder or to document body.
+				font.holder.appendChild(font.wrapper);
 
 				// Set check timer.
 				setTimeout(function () {
 
-					// Check again.
-					check();
+					// Record element's initial width and height.
+					font.width = font.target.offsetWidth;
+					font.height = font.target.offsetHeight;
+
+					// Set font class to apply specific font.
+					target_style.fontFamily = font.family;
+
+					// Check.
+					analyse();
 
 				}, 0);
 
 			}
 
-			return false;
-		}
+			// Check if font is already identified.
+			else if (!utils.isUndefined(font.success)) {
 
-		try {
+				// Complete with result.
+				complete(font.success);
 
-			var
-
-				/**
-				 * @type {Object}
-				 */
-				elementStyle = element.style;
-
-			// Define CSS parameters.
-			elementStyle.fontFamily = 'Times New Roman';
-			elementStyle.position = 'absolute';
-			elementStyle.width = 'auto';
-			elementStyle.height = 'auto';
-			elementStyle.display = 'block';
-			elementStyle.visibility = 'hidden';
-			elementStyle.fontSize = '48px';
-			elementStyle.lineHeight = 'normal';
-
-			// Place text into element.
-			element.innerHTML = 'QW@HhsXJ1';
-
-			// Append child to body.
-			target.appendChild(element);
-
-			// Set check timer.
-			setTimeout(function () {
-
-				// Record element's initial width and height.
-				width = element.offsetWidth;
-				height = element.offsetHeight;
-
-				// Set font class to apply specific font.
-				elementStyle.fontFamily = (utils.isEmptyString(font) ? '' : font);
-
-				// Check.
-				check();
-
-			}, 0);
+			}
 
 		} catch (e) {
 
@@ -456,7 +703,6 @@ function (tactic) {
 	 * @description Check if DOM element has provided class name.
 	 */
 	utils.hasClass = function (target, className) {
-
 		return !utils.isUndefined(target) && 'className' in target && new RegExp('(\\s|^)' + utils.escapeRegExpString(className) + '(\\s|$)').test(target.className);
 	};
 
@@ -470,9 +716,12 @@ function (tactic) {
 
 		if (utils.isElement(target) && utils.isString(className) && !utils.hasClass(target, className)) {
 			target.className += ' ' + className;
-			target.className = target.className.split('  ').join(' ').replace(/^\s+|\s+$/g, '');
+			// target.className = target.className.split('  ').join(' ').replace(/^\s+|\s+$/g, '');
+			target.className = target.className.split('  ').join(' ');
 		}
-		return utils.isString(className) ? className : '';
+
+		// return utils.isString(className) ? className : '';
+		return className;
 	};
 
 	/**
@@ -696,6 +945,43 @@ function (tactic) {
 
 					var style = css[cssIndex];
 
+					if (utils.isObject(style) && style.enabled !== false) {
+
+						if (style.calc) {
+
+							var
+
+								macros = {};
+
+							if (utils.isArray(style.value)) {
+								for (var valueIndex in style.value) {
+									macros['value_' + valueIndex] = style.value[valueIndex];
+								}
+							}
+							else {
+								macros = {
+									'value': style.value
+								}
+							}
+
+							try {
+
+								style = eval(utils.replaceMacros(style.calc, macros));
+
+							} catch (e) {
+
+								style = (utils.replaceMacros(style.calc, macros));
+
+							}
+
+						} else {
+
+							style = style.value;
+
+						}
+
+					}
+
 					if (utils.isString(style) || utils.isNumber(style)) {
 
 						// Check if style has any kind of source link.
@@ -809,26 +1095,20 @@ function (tactic) {
 	 * @function
 	 * @param {Object} object1
 	 * @param {Object} object2
-	 * @param {Boolean} [mergeArray]
-	 * @param {Array} [replaceArray]
+	 * @param {Boolean} [mergeArrays]
+	 * @param {Array} [replaceArrays]
 	 * @return {Object}
 	 */
-	utils.mergeObjects = function (object1, object2, mergeArray, replaceArray) {
-		var isObject = utils.isObject;
-		var isBoolean = utils.isBoolean;
-		var isArray = utils.isArray;
-		var mergeArrays = utils.mergeArrays;
-		var mergeObjects = utils.mergeObjects;
-
+	utils.mergeObjects = function (object1, object2, mergeArrays, replaceArrays) {
 		for (var key in object2) {
 			if (object2.hasOwnProperty(key)) {
 				try {
-					if (isArray(object2[key]) && (isBoolean(mergeArray) ? mergeArray : false)) {
-						object1[key] = mergeArrays(object1[key], object2[key]);
-					} else if (replaceArray === true || (isArray(object2[key]) && isArray(replaceArray) && utils.arrayContains(replaceArray, key))) {
+					if (mergeArrays && utils.isArray(object2[key])) {
+						object1[key] = utils.mergeArrays(object1[key], object2[key]);
+					} else if (replaceArrays && utils.isArray(replaceArrays) && utils.arrayContains(replaceArrays, key)) {
 						object1[key] = object2[key];
-					} else if (isObject(object2[key])) {
-						object1[key] = mergeObjects(object1[key], object2[key], mergeArray);
+					} else if (utils.isObject(object2[key])) {
+						object1[key] = utils.mergeObjects(object1[key], object2[key], mergeArrays, replaceArrays);
 					} else {
 						object1[key] = object2[key];
 					}
@@ -848,20 +1128,16 @@ function (tactic) {
 	 * @param {Object} data - Data to be analysed.
 	 * @param {Array} attrs - Exceptional attributes to fetch.
 	 * @param {Array} [excludes] - Exclude object namespaces from parsing.
-	 * @param {Boolean} [mergeArray] - Concat arrays.
-	 * @param {(Array|Boolean)} [replaceArray] - Replace arrays.
 	 * @param {Number} [depth] - Indicate parsing depth.
 	 * @param {String} [exceptIndex] - Indicate namespace of exception object.
 	 * @return {Object|Array}
 	 */
-	utils.extractExceptions = function (data, attrs, excludes, mergeArray, replaceArray, depth, exceptIndex) {
+	utils.extractExceptions = function (data, attrs, excludes, depth, exceptIndex) {
 
 		attrs = utils.isArray(attrs) ? attrs : [];
 		exceptIndex = utils.isString(exceptIndex) ? exceptIndex : 'excepts';
 		depth = utils.isNumber(depth) ? depth : 999;
 		excludes = utils.isArray(excludes) ? excludes : [];
-		mergeArray = utils.isBoolean(mergeArray) ? mergeArray : false;
-		replaceArray = (utils.isArray(replaceArray) || utils.isBoolean(replaceArray)) ? replaceArray : true;
 
 		try {
 			if (utils.isObject(data)) {
@@ -872,8 +1148,23 @@ function (tactic) {
 								if (utils.arrayContains(attrs, objectKey)) {
 									if (depth > 0 && !(utils.arrayContains(excludes, objectIndex))) {
 										if (utils.isObject(data[objectIndex][objectKey])) {
-											data[objectIndex]
-												= utils.mergeObjects(data, utils.extractExceptions(data[objectIndex][objectKey], attrs, excludes, mergeArray, replaceArray, (depth - 1), exceptIndex), mergeArray, replaceArray);
+											if (utils.isObject(data[objectIndex][objectKey].data)) {
+												if (utils.isTypeOf(utils.isBoolean, data[objectIndex][objectKey].enabled, true)) {
+													for (var dataKey in data[objectIndex][objectKey].data) {
+														if (data[objectIndex][objectKey].data.hasOwnProperty(dataKey)) {
+															if (data[objectIndex][objectKey].replace || !data[dataKey] || !utils.isObject(data[dataKey]) || utils.isArray(data[dataKey])) {
+																data[objectIndex][dataKey] = data[dataKey] = utils.extractExceptions(data[objectIndex][objectKey].data[dataKey], attrs, excludes, (depth - 1), exceptIndex);
+															} else {
+																data[objectIndex][dataKey] = utils.mergeObjects(data[dataKey], utils.extractExceptions(data[objectIndex][objectKey].data[dataKey], attrs, excludes, (depth - 1), exceptIndex), data[objectIndex][objectKey].mergeArrays, data[objectIndex][objectKey].replaceArrays);
+															}
+														}
+													}
+												} else {
+													delete data[objectIndex][objectKey];
+												}
+											} else if (data[objectIndex][objectKey].data !== null) {
+												data[objectIndex] = utils.mergeObjects(data, utils.extractExceptions(data[objectIndex][objectKey], attrs, excludes, (depth - 1), exceptIndex));
+											}
 										} else {
 											data[objectIndex] = data[objectIndex][objectKey];
 										}
@@ -883,7 +1174,7 @@ function (tactic) {
 						}
 					} else if (utils.isObject(data[objectIndex])) {
 						if (depth > 0 && !(utils.arrayContains(excludes, objectIndex))) {
-							data[objectIndex] = utils.extractExceptions(data[objectIndex], attrs, excludes, mergeArray, replaceArray, (depth - 1), exceptIndex);
+							data[objectIndex] = utils.extractExceptions(data[objectIndex], attrs, excludes, (depth - 1), exceptIndex);
 						}
 					}
 				}
@@ -991,9 +1282,10 @@ function (tactic) {
 	 * @param {Array} [excludes] - Exclude object namespaces from parsing.
 	 * @param {Boolean} [keys] - Replace keys.
 	 * @param {Number} [depth] - Indicate parsing depth.
+	 * @param {Array} [syntax] - Indicate macro syntax.
 	 * @return {Object|Array|String}
 	 */
-	utils.replaceMacros = function (object, macros, excludes, keys, depth) {
+	utils.replaceMacros = function (object, macros, excludes, keys, depth, syntax) {
 
 		if (utils.isArray(macros)) {
 			var tempMacros = {};
@@ -1006,11 +1298,12 @@ function (tactic) {
 		excludes = utils.isArray(excludes) ? excludes : [];
 		keys = utils.isBoolean(keys) ? keys : true;
 		depth = utils.isNumber(depth) ? depth : 999;
+		syntax = utils.isArray(syntax) ? syntax : ['$[', ']'];
 
 		function replace(object, key) {
 			try {
 				for (var i in macros) {
-					object = object.toString().split('{' + i + '}').join(macros[i]);
+					object = object.toString().split(syntax[0] + i + syntax[1]).join(macros[i]);
 
 					if (!key) {
 						if (object === 'true') {
@@ -1039,7 +1332,7 @@ function (tactic) {
 							object[key] = replace(object[key]);
 							var temp = object[key], tempDif;
 							for (var j = 0; j < 10; j++) {
-								if (utils.isString(object[key]) && temp !== tempDif && object[key].indexOf('{') !== -1 && object[key].indexOf('}') !== -1) {
+								if (utils.isString(object[key]) && temp !== tempDif && object[key].indexOf(syntax[0]) !== -1 && object[key].indexOf(syntax[1]) !== -1) {
 									object[key] = replace(object[key]);
 									tempDif = object[key];
 								} else {
@@ -1052,7 +1345,7 @@ function (tactic) {
 							}
 							if (keys) {
 								var newKey;
-								if (key && key.indexOf('{') !== -1 && key.indexOf('}') !== -1) {
+								if (key && key.indexOf(syntax[0]) !== -1 && key.indexOf(syntax[1]) !== -1) {
 									newKey = replace(key, true);
 								}
 								if (newKey && newKey !== key) {
@@ -1145,7 +1438,8 @@ function (tactic) {
 		// matching groups.
 		var arrMatches = null;
 
-		// Keep looping over the regular expression matches
+
+		// Keep looping overlay the regular expression matches
 		// until we can no longer find a match.
 		while (arrMatches = objPattern.exec(strData)) {
 
@@ -1198,13 +1492,142 @@ function (tactic) {
 		return (arrData);
 	};
 
+	// /**
+	//  * @type {Object}
+	//  * @description Encode and decode b64. http://www.webtoolkit.info/
+	//  */
+	// utils.base64 = {
+	//
+	// 	_keyStr: "ABCDEPCHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+	//
+	// 	/**
+	// 	 * @function
+	// 	 * @param {String} input
+	// 	 */
+	// 	encode: function (input) {
+	// 		var output = '';
+	// 		var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+	// 		var i      = 0;
+	// 		input      = utils.base64._utf8_encode(input);
+	// 		while (i < input.length) {
+	// 			chr1 = input.charCodeAt(i++);
+	// 			chr2 = input.charCodeAt(i++);
+	// 			chr3 = input.charCodeAt(i++);
+	// 			enc1 = chr1 >> 2;
+	// 			enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+	// 			enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+	// 			enc4 = chr3 & 63;
+	// 			if (isNaN(chr2)) {
+	// 				enc3 = enc4 = 64;
+	// 			}
+	// 			else if (isNaN(chr3)) {
+	// 				enc4 = 64;
+	// 			}
+	// 			output
+	// 				= output + this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) + this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
+	// 		}
+	//
+	// 		return output;
+	// 	},
+	//
+	// 	/**
+	// 	 * @function
+	// 	 * @param {String} input
+	// 	 */
+	// 	decode: function (input) {
+	// 		var output = '';
+	// 		var chr1, chr2, chr3;
+	// 		var enc1, enc2, enc3, enc4;
+	// 		var i      = 0;
+	// 		input      = input.replace(/[^A-Za-z0-9\+\/\=]/g, '');
+	// 		while (i < input.length) {
+	// 			enc1   = this._keyStr.indexOf(input.charAt(i++));
+	// 			enc2   = this._keyStr.indexOf(input.charAt(i++));
+	// 			enc3   = this._keyStr.indexOf(input.charAt(i++));
+	// 			enc4   = this._keyStr.indexOf(input.charAt(i++));
+	// 			chr1   = (enc1 << 2) | (enc2 >> 4);
+	// 			chr2   = ((enc2 & 15) << 4) | (enc3 >> 2);
+	// 			chr3   = ((enc3 & 3) << 6) | enc4;
+	// 			output = output + String.fromCharCode(chr1);
+	// 			if (enc3 != 64) {
+	// 				output = output + String.fromCharCode(chr2);
+	// 			}
+	// 			if (enc4 != 64) {
+	// 				output = output + String.fromCharCode(chr3);
+	// 			}
+	// 		}
+	// 		output = utils.base64._utf8_decode(output);
+	//
+	// 		return output;
+	// 	},
+	//
+	// 	/**
+	// 	 * @function
+	// 	 * @param {String} string
+	// 	 */
+	// 	_utf8_encode: function (string) {
+	// 		string      = string.replace(/\r\n/g, "\n");
+	// 		var utftext = '';
+	// 		for (var n = 0; n < string.length; n++) {
+	// 			var c = string.charCodeAt(n);
+	// 			if (c < 128) {
+	// 				utftext += String.fromCharCode(c);
+	// 			}
+	// 			else if ((c > 127) && (c < 2048)) {
+	// 				utftext += String.fromCharCode((c >> 6) | 192);
+	// 				utftext += String.fromCharCode((c & 63) | 128);
+	// 			}
+	// 			else {
+	// 				utftext += String.fromCharCode((c >> 12) | 224);
+	// 				utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+	// 				utftext += String.fromCharCode((c & 63) | 128);
+	// 			}
+	// 		}
+	//
+	// 		return utftext;
+	// 	},
+	//
+	// 	/**
+	// 	 * @function
+	// 	 * @param {String} utftext
+	// 	 */
+	// 	_utf8_decode: function (utftext) {
+	// 		var string = '';
+	// 		var i      = 0;
+	// 		var c, c1, c2, c3;
+	// 		c          = c1 = c2 = 0;
+	// 		while (i < utftext.length) {
+	// 			c = utftext.charCodeAt(i);
+	// 			if (c < 128) {
+	// 				string += String.fromCharCode(c);
+	// 				i++;
+	// 			}
+	// 			else if ((c > 191) && (c < 224)) {
+	// 				c2 = utftext.charCodeAt(i + 1);
+	// 				string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+	// 				i += 2;
+	// 			}
+	// 			else {
+	// 				c2 = utftext.charCodeAt(i + 1);
+	// 				c3 = utftext.charCodeAt(i + 2);
+	// 				string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+	// 				i += 3;
+	// 			}
+	// 		}
+	//
+	// 		return string;
+	// 	}
+	//
+	// };
+
 	/**
 	 * @constructor
 	 * @param {Element|Node} target
 	 * @param {Object} callback
 	 * @param {Object} [params]
+	 * @return {Object}
 	 */
-	utils.DragWatcher = function (target, callback, params) {
+	utils.GestureListener = function (target, callback, params) {
 
 		/**
 		 * @type {Element|Node}
@@ -1234,6 +1657,11 @@ function (tactic) {
 		};
 
 		/**
+		 * @type {Object}
+		 */
+		this.events = {};
+
+		/**
 		 * @type {Event}
 		 */
 		this.startEvent = null;
@@ -1241,19 +1669,9 @@ function (tactic) {
 		var
 
 			/**
-			 * @type {tactic.utils.DragWatcher}
+			 * @type {tactic.utils.GestureListener}
 			 */
-			that = this,
-
-			/**
-			 * @type {tactic.utils.addEventSimple}
-			 */
-			addEventSimple = utils.addEventSimple,
-
-			/**
-			 * @type {tactic.utils.addEventSimple}
-			 */
-			removeEventSimple = utils.removeEventSimple;
+			that = this;
 
 		var
 
@@ -1297,15 +1715,13 @@ function (tactic) {
 
 				that.startEvent = event;
 
-				addEventSimple(that.target, 'mousemove', moveHandler);
-				addEventSimple(that.target, 'touchmove', moveHandler);
-
-				addEventSimple(that.target, 'mouseup', stopHandler);
-				addEventSimple(that.target, 'mouseout', stopHandler);
-				addEventSimple(that.target, 'touchend', stopHandler);
-				addEventSimple(that.target, 'touchcancel', stopHandler);
-
-				addEventSimple(that.target, 'click', clickHandler);
+				that.events.mousemove = utils.addEventSimple(that.target, 'mousemove', moveHandler);
+				that.events.touchmove = utils.addEventSimple(that.target, 'touchmove', moveHandler);
+				that.events.mouseup = utils.addEventSimple(that.target, 'mouseup', stopHandler);
+				that.events.mouseout = utils.addEventSimple(that.target, 'mouseout', stopHandler);
+				that.events.touchend = utils.addEventSimple(that.target, 'touchend', stopHandler);
+				that.events.touchcancel = utils.addEventSimple(that.target, 'touchcancel', stopHandler);
+				that.events.click = utils.addEventSimple(that.target, 'click', clickHandler);
 
 				// Trigger callback.
 				triggerCallback('start', event);
@@ -1322,7 +1738,7 @@ function (tactic) {
 			moveHandler = function (event) {
 
 				// Remove click event.
-				removeEventSimple(that.target, 'click', clickHandler);
+				that.events.click = utils.removeEventSimple(that.target, 'click', clickHandler);
 
 				// Trigger event.
 				triggerCallback('move', event);
@@ -1338,13 +1754,12 @@ function (tactic) {
 			 */
 			stopHandler = function (event) {
 
-				removeEventSimple(that.target, 'mousemove', moveHandler);
-				removeEventSimple(that.target, 'touchmove', moveHandler);
-
-				removeEventSimple(that.target, 'mouseup', stopHandler);
-				removeEventSimple(that.target, 'mouseout', stopHandler);
-				removeEventSimple(that.target, 'touchend', stopHandler);
-				removeEventSimple(that.target, 'touchcancel', stopHandler);
+				that.events.mousemove = utils.removeEventSimple(that.target, 'mousemove', moveHandler);
+				that.events.touchmove = utils.removeEventSimple(that.target, 'touchmove', moveHandler);
+				that.events.mouseup = utils.removeEventSimple(that.target, 'mouseup', stopHandler);
+				that.events.mouseout = utils.removeEventSimple(that.target, 'mouseout', stopHandler);
+				that.events.touchend = utils.removeEventSimple(that.target, 'touchend', stopHandler);
+				that.events.touchcancel = utils.removeEventSimple(that.target, 'touchcancel', stopHandler);
 
 				// Trigger callback.
 				triggerCallback('stop', event);
@@ -1355,12 +1770,11 @@ function (tactic) {
 			};
 
 		if (that.target && that.callback) {
-
-			addEventSimple(that.target, 'mousedown', startHandler);
-			addEventSimple(that.target, 'touchstart', startHandler);
-
+			that.events.mousedown = utils.addEventSimple(that.target, 'mousedown', startHandler);
+			that.events.touchstart = utils.addEventSimple(that.target, 'touchstart', startHandler);
 		}
 
+		return that;
 	};
 
 	var
@@ -1501,7 +1915,7 @@ function (tactic) {
 		/**
 		 * @type {Number}
 		 */
-		this.min = utils.isTypeOf(utils.isNumber, this.data.min, 4);
+		this.min = utils.isTypeOf(utils.isNumber, this.data.min, 2);
 
 		/**
 		 * @type {Number}
@@ -1688,69 +2102,6 @@ function (tactic) {
 
 			// Set value.
 			that.value = value;
-
-			return true;
-		}
-
-		return false;
-	};
-
-	/**
-	 * Position property constructor.
-	 *
-	 * @constructor
-	 * @param {Object} data - Property data.
-	 */
-	props.OrientationProp = function (data) {
-
-		/**
-		 * @type {String}
-		 */
-		this.type = 'OrientationProp';
-
-		/**
-		 * @type {String}
-		 */
-		this.name = 'orientation';
-
-		// Set property defaults.
-		this.set(data);
-
-		/**
-		 * @type {Array}
-		 */
-		this.options = utils.isTypeOf(utils.isArray, this.data.options, [
-			[0, 'portrait'],
-			[0.714, 'square'],
-			[1.5, 'landscape']
-		]);
-
-	};
-	props.OrientationProp.prototype = new props.AbstractProp();
-	props.OrientationProp.prototype.constructor = props.OrientationProp;
-
-	/**
-	 * Update property.
-	 *
-	 * @function
-	 * @param {Number} width
-	 * @param {Number} height
-	 * @return {Boolean}
-	 */
-	props.OrientationProp.prototype.update = function (width, height) {
-
-		var
-
-			/**
-			 * @type {tactic.builder.props.OrientationProp}
-			 */
-			that = this;
-
-		// Validate parameters.
-		if (that.enabled && !isNaN(width) && !isNaN(height)) {
-
-			// Select orientation property from available options.
-			that.value = utils.selectProperty(that.options, (width / height));
 
 			return true;
 		}
@@ -2028,7 +2379,7 @@ function (tactic) {
 	};
 
 	/**
-	 * Position property constructor.
+	 * Scale property constructor.
 	 *
 	 * @constructor
 	 * @param {Object} data - Property data.
@@ -2059,7 +2410,7 @@ function (tactic) {
 			/**
 			 * @type  {Number}
 			 */
-			param: utils.isTypeOf(utils.isNumber, this.data.area, 15000),
+			param: utils.isTypeOf(utils.isNumber, this.data.area, 24000),
 
 			/**
 			 * @type  {Number}
@@ -2099,7 +2450,7 @@ function (tactic) {
 			/**
 			 * @type  {Number}
 			 */
-			param: utils.isTypeOf(utils.isNumber, this.data.font, 5),
+			param: utils.isTypeOf(utils.isNumber, this.data.font, 4),
 
 			/**
 			 * @type  {Number}
@@ -2109,28 +2460,35 @@ function (tactic) {
 		};
 
 		/**
-		 * Validate tension options to select from.
+		 * Validate scale options to select from.
 		 *
 		 * @type {Array}
 		 */
 		this.options = utils.isTypeOf(utils.isArray, this.data.options, [
-			[0, 'micro'],
-			[6000, 'tiny'],
-			[16000, 'small'],
-			[40000, 'medium'],
-			[250000, 'big'],
-			[640000, 'huge']
+			[
+				0,
+				"xs",
+				0
+			],
+			[
+				32000,
+				"s",
+				0
+			],
+			[
+				64000,
+				"m",
+				0
+			],
+			[
+				256000,
+				"l",
+				0
+			]
 		]);
 
-		/**
-		 * Validate scaling ratio.
-		 * This will increase or decrease default font size depending on value.
-		 *
-		 * @type  {Number}
-		 */
-		this.ratio = Number(utils.isTypeOf(utils.isNumber, this.data.ratio, 1));
-
 	};
+
 	props.ScaleProp.prototype = new props.AbstractProp();
 	props.ScaleProp.prototype.constructor = props.ScaleProp;
 
@@ -2160,12 +2518,41 @@ function (tactic) {
 			// Update velocity value.
 			that.velocity.value = Math.sqrt(that.area.value / that.area.param);
 			that.velocity.value = that.velocity.value + (that.velocity.value * that.velocity.param / 10);
-
-			// Update font size value.
-			that.font.value = Math.round(that.font.param * that.ratio * that.velocity.value);
+			that.velocity.value  = that.velocity.value < 1 ? 1 : that.velocity.value;
 
 			// Select scale property from available options.
 			that.value = utils.selectProperty(that.options, that.area.value);
+
+			var
+
+				/**
+				 * @type {Number}
+				 */
+				scale = 1;
+
+			// Loop all options.
+			for (var option_index in that.options) {
+
+				var
+
+					/**
+					 * @type {Array}
+					 */
+					option = that.options[option_index];
+
+				// Check if option matches scale value.
+				if (option[1] === that.value) {
+
+					// Calculate scale depending on parameters.
+					scale = utils.isTypeOf(utils.isNumber, (1 + (option[2] / 20)), 1);
+
+					break;
+				}
+
+			}
+
+			// Update font size value.
+			that.font.value = Math.round(that.font.param * that.velocity.value * scale);
 
 			return true;
 		}
@@ -2174,7 +2561,7 @@ function (tactic) {
 	};
 
 	/**
-	 * Position property constructor.
+	 * Size property constructor.
 	 *
 	 * @constructor
 	 * @param {Object} data - Property data.
@@ -2275,7 +2662,7 @@ function (tactic) {
 	};
 
 	/**
-	 * Position property constructor.
+	 * Tension property constructor (combined with depricated OrientationProp).
 	 *
 	 * @constructor
 	 * @param {Object} data - Property data.
@@ -2308,14 +2695,14 @@ function (tactic) {
 			 *
 			 * @type  {Number}
 			 */
-			taller: utils.isTypeOf(utils.isNumber, utils.getObjectDeep(this.data, 'velocity.taller'), -0.5),
+			taller: utils.isTypeOf(utils.isNumber, utils.getObjectDeep(this.data, 'velocity.taller'), 0),
 
 			/**
 			 * Validate wider tension velocity.
 			 *
 			 * @type  {Number}
 			 */
-			wider: utils.isTypeOf(utils.isNumber, utils.getObjectDeep(this.data, 'velocity.wider'), -1),
+			wider: utils.isTypeOf(utils.isNumber, utils.getObjectDeep(this.data, 'velocity.wider'), 0),
 
 			/**
 			 * @type  {Number}
@@ -2330,13 +2717,9 @@ function (tactic) {
 		 * @type {Array}
 		 */
 		this.options = utils.isTypeOf(utils.isArray, this.data.options, [
-			[0, 'tallest'],
-			[0.266, 'taller'],
-			[0.444, 'tall'],
-			[0.714, 'equal'],
-			[1.5, 'wide'],
-			[3, 'wider'],
-			[5, 'widest']
+			[0, 'p'],
+			[0.714, 's'],
+			[1.5, 'l']
 		]);
 
 	};
@@ -2402,7 +2785,7 @@ function (tactic) {
 	 * @param {String} key - Component key.
 	 * @param {Object} data - Component data.
 	 * @param {Function} [callback] - Complete event handler.
-	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
+	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
 	 * @param {Object} [override] - Component parameters.
 	 * @param {Number} [index] - Layer index (if is part of array).
 	 */
@@ -2435,6 +2818,11 @@ function (tactic) {
 		 * @type {tactic.builder.layers.BannerLayer}
 		 */
 		this.root = this.root ? this.root : this.parent ? this.parent.root : undefined;
+
+		/**
+		 * @type {Object}
+		 */
+		this.timeline = this.root.timeline ? this.root.timeline : new utils.Timeline();
 
 		/**
 		 * @type {Object}
@@ -2549,6 +2937,11 @@ function (tactic) {
 		/**
 		 * @type {Object}
 		 */
+		this.gestures = {};
+
+		/**
+		 * @type {Object}
+		 */
 		this.timers = {};
 
 		/**
@@ -2589,12 +2982,12 @@ function (tactic) {
 		this.params = {};
 
 		/**
-		 * @type {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)}
+		 * @type {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)}
 		 */
 		this.holder = this;
 
 		/**
-		 * @type {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)}
+		 * @type {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)}
 		 */
 		this.wrapper = this.holder;
 
@@ -2628,9 +3021,21 @@ function (tactic) {
 		};
 
 		/**
+		 * Layer animations.
+		 *
+		 * @type {Object}
+		 */
+		this.anims = {};
+
+		/**
 		 * @type {Array}
 		 */
 		this.sources = [];
+
+		/**
+		 * @type {Object}
+		 */
+		this.feed = {};
 
 		/**
 		 * @type {Object}
@@ -2673,6 +3078,11 @@ function (tactic) {
 		 */
 		this.entered = undefined;
 
+		/**
+		 * @type {Boolean}
+		 */
+		this.hash = undefined;
+
 	};
 
 	/**
@@ -2713,7 +3123,7 @@ function (tactic) {
 				 *
 				 * @type {Object}
 				 */
-				data = utils.extractExceptions(utils.cloneObject(that.data), attrs, ['macros', 'params', 'attrs', 'sources', 'custom']);
+				data = utils.extractExceptions(utils.cloneObject(that.data), attrs, ['fonts', 'macros', 'params', 'attrs', 'anims', 'sources', 'custom']);
 
 			// Delete layers and frames from actual data as we don't need that scope.
 			delete (data.layers);
@@ -2756,6 +3166,9 @@ function (tactic) {
 				// Initialise parameters.
 				that.initParams(utils.extractExceptions(utils.replaceMacros(utils.isTypeOf(utils.isObject, data.params, {}), macros), attrs));
 
+				// Initialise feed.
+				that.initFeed(utils.extractExceptions(utils.replaceMacros(utils.isTypeOf(utils.isObject, data.feed, {}), macros), attrs));
+
 				// Initialise sources.
 				that.initSources(utils.extractExceptions(utils.replaceMacros(utils.isTypeOf(utils.isObject, data.sources, {}), macros), attrs));
 
@@ -2767,6 +3180,9 @@ function (tactic) {
 
 				// Find layer wrapper (based on parameters).
 				that.initWrapper(that.params.wrapper);
+
+				// Initialise custom animations.
+				that.initAnims(utils.extractExceptions(utils.replaceMacros(utils.isTypeOf(utils.isObject, data.anims, {}), macros), attrs));
 
 			} else {
 
@@ -2786,7 +3202,7 @@ function (tactic) {
 			that.inited = true;
 
 			// Pause is required to give time to DOM elements to append.
-			that.timers.init = setTimeout(function () {
+			that.timers.init = that.timeline.setTimeout(function () {
 
 				// Trigger event.
 				that.trigger({
@@ -2914,27 +3330,187 @@ function (tactic) {
 			// Set parameters.
 			that.props = {};
 
-			if (data.orientation) {
+			// Check if scale properties are provided.
+			if (data.size) {
 
-				// Create new orientation property.
-				that.props.orientation = new props.OrientationProp(data.orientation);
+				// Create new scale property.
+				that.props.size = new props.SizeProp(data.size);
 
-				// Initialise orientation property.
-				that.props.orientation.update(that.width(), that.height());
+				// Initialise scale property.
+				that.props.size.update(that.width(), that.height());
 
 				// Check if property is enabled.
-				if (that.props.orientation.enabled) {
+				if (that.props.size.enabled) {
 
-					// Add orientation attribute.
-					that.addAttr(that.props.orientation.name, {
+					var
 
 						/**
 						 * @type {String}
 						 */
-						name: that.props.orientation.name + '_' + that.props.orientation.value,
+						size_name = (utils.isEmptyString(that.props.size.name) ? '' : that.props.size.name + '_') + that.props.size.value;
+
+					// // Add param macros.
+					// // NB! Macro replacement utility may reduce banner performance, use this feature wisely.
+					// that.addMacro(name, {
+					//
+					// 	/**
+					// 	 * Validate if global.
+					// 	 * @type  {String}
+					// 	 */
+					// 	global: true,
+					//
+					// 	/**
+					// 	 * @type {String}
+					// 	 */
+					// 	value: that.props.scale.value
+					//
+					// });
+
+					// Add attribute.
+					that.addAttr(that.props.size.name, {
 
 						/**
-						 * @type {Boolean}
+						 * @type {String}
+						 */
+						name: size_name,
+
+						/**
+						 * Validate if global.
+						 * @type  {Boolean}
+						 */
+						global: true
+
+					});
+
+				}
+
+			}
+
+			// Check if scale properties are provided.
+			if (data.scale) {
+
+				// Create new scale property.
+				that.props.scale = new props.ScaleProp(data.scale);
+
+				// Initialise scale property.
+				that.props.scale.update(that.width(), that.height());
+
+				// Check if property is enabled.
+				if (that.props.scale.enabled) {
+
+					var
+
+						/**
+						 * @type {String}
+						 */
+						scale_name = (utils.isEmptyString(that.props.scale.name) ? '' : that.props.scale.name + '_') + that.props.scale.value;
+
+					// // Add param macros.
+					// // NB! Macro replacement utility may reduce banner performance, use this feature wisely.
+					// that.addMacro(name, {
+					//
+					// 	/**
+					// 	 * Validate if global.
+					// 	 * @type  {String}
+					// 	 */
+					// 	global: true,
+					//
+					// 	/**
+					// 	 * @type {String}
+					// 	 */
+					// 	value: that.props.scale.value
+					//
+					// });
+
+					// Add attribute.
+					that.addAttr(that.props.scale.name, {
+
+						/**
+						 * @type {String}
+						 */
+						name: scale_name,
+
+						/**
+						 * Validate if global.
+						 * @type  {Boolean}
+						 */
+						global: true
+
+					});
+
+					// Check if font scale is updated.
+					if (that.props.scale.font.value > 0) {
+
+						// Add font size attribute.
+						that.addAttr(scale_name + '_font', {
+
+							/**
+							 * @type {Object}
+							 */
+							css: {
+
+								/**
+								 * @type {String}
+								 */
+								'font-size': that.props.scale.font.value + 'px'
+
+							}
+
+						});
+
+					}
+
+				}
+
+			}
+
+			// Check if tension properties are provided.
+			if (data.tension) {
+
+				// Create new tension property.
+				that.props.tension = new props.TensionProp(data.tension);
+
+				// Initialise tension property.
+				that.props.tension.update(that.width(), that.height());
+
+				// Check if property is enabled.
+				if (that.props.tension.enabled) {
+
+					var
+
+						/**
+						 * @type {String}
+						 */
+						tension_name = (utils.isEmptyString(that.props.tension.name) ? '' : that.props.tension.name + '_') + that.props.tension.value;
+
+					// // Add param macros.
+					// // NB! Macro replacement utility may reduce banner performance, use this feature wisely.
+					// that.addMacro(name, {
+					//
+					// 	/**
+					// 	 * Validate if global.
+					// 	 * @type  {Boolean}
+					// 	 */
+					// 	global: true,
+					//
+					// 	/**
+					// 	 * @type {String}
+					// 	 */
+					// 	value: that.props.tension.value
+					//
+					// });
+
+					// Add attribute.
+					that.addAttr(tension_name, {
+
+						/**
+						 * @type {String}
+						 */
+						name: tension_name,
+
+						/**
+						 * Validate if global.
+						 * @type  {Boolean}
 						 */
 						global: true
 
@@ -3022,6 +3598,32 @@ function (tactic) {
 	};
 
 	/**
+	 * Initialise layer animations.
+	 *
+	 * @function
+	 * @param {Object} data
+	 * @return {Boolean}
+	 */
+	layers.AbstractLayer.prototype.initAnims = function (data) {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.AbstractLayer}
+			 */
+			that = this;
+
+		// Check if layer is not yet initialised.
+		if (!that.inited) {
+
+			// Add global attributes to layer.
+			return that.addAnims(data);
+		}
+
+		return false;
+	};
+
+	/**
 	 * Initialise layer sources.
 	 *
 	 * @function
@@ -3049,6 +3651,159 @@ function (tactic) {
 			} else {
 
 				that.sources = [];
+
+			}
+
+			return true;
+		}
+
+		return false;
+	};
+
+	/**
+	 * Initialise custom layer parameters.
+	 *
+	 * @function
+	 * @param {Object} data
+	 * @return {Boolean}
+	 */
+	layers.AbstractLayer.prototype.initFeed = function (data) {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.AbstractLayer}
+			 */
+			that = this;
+
+		// Check if layer is not yet initialised.
+		if (!that.inited) {
+
+			/**
+			 * @type {Object}
+			 */
+			that.feed = {
+
+				/**
+				 * @type {Boolean}
+				 */
+				enabled: utils.isTypeOf(utils.isBoolean, data.enabled, false),
+
+				/**
+				 * @type {Number}
+				 */
+				id: utils.isTypeOf(utils.isNumber, data.id, 0),
+
+				/**
+				 * @type {Number}
+				 */
+				index: utils.isTypeOf(utils.isNumber, Number(data.index), 0),
+
+				/**
+				 * @type {Number}
+				 */
+				key: utils.isTypeOf(utils.isNumber, Number(data.key), NaN),
+
+				/**
+				 * @type {String}
+				 */
+				name: utils.isTypeOf(utils.isString, data.name, null),
+
+				/**
+				 * @type {String}
+				 */
+				splitter: utils.isTypeOf(utils.isString, data.splitter, null),
+
+				/**
+				 * @type {String}
+				 */
+				value: undefined
+
+			};
+
+			// Check if feed is enabled
+			if (that.feed.enabled) {
+
+				var
+
+					/**
+					 * @type {Object}
+					 */
+					feed_ref = that.root.feeds[that.feed.id];
+
+				// Check if feed is available.
+				if (feed_ref && feed_ref.data && feed_ref.enabled) {
+
+					// Check if feed item name was provided, but key is not set.
+					if (that.feed.name && isNaN(that.feed.key)) {
+
+						var
+
+							/**
+							 * @type {Number}
+							 */
+							key = feed_ref.data.index.indexOf(that.feed.name);
+
+						// Check if key was found in feed index.
+						if (key !== -1) {
+
+							// Set feed key as found in index.
+							that.feed.key = key;
+
+						}
+
+					}
+
+					// Check if value is found.
+					if (!isNaN(that.feed.key)) {
+
+						var
+
+							/**
+							 * @type {String}
+							 */
+							value = feed_ref.data.items[that.feed.index][that.feed.key];
+
+						var
+
+							/**
+							 * @type {Object}
+							 */
+							macros = {
+
+								/**
+								 * @type {String}
+								 */
+								value: value
+
+							};
+
+						// Check if value has to be split.
+						if (that.feed.splitter && value) {
+
+							// Loop all layer related timers.
+							utils.each(value.split(that.feed.splitter),
+
+								/**
+								 * @param {String} split_value
+								 * @param {Number} split_key
+								 */
+								function (split_value, split_key) {
+
+									// Define additional split values.
+									macros['value_' + split_key] = split_value;
+
+								}
+							);
+
+						}
+
+						// Set value or try ro replace macro if possible.
+						that.feed.value = data.value ? (utils.replaceMacros(data.value, macros)) : value;
+
+					}
+
+				}
 
 			}
 
@@ -3178,7 +3933,7 @@ function (tactic) {
 		if (that.inited && that.enabled) {
 
 			// Check if layer is loadable.
-			return (!this.sequence || this.entered);
+			return (!this.sequence || (this.sequence && this.entered));
 
 		}
 
@@ -3208,11 +3963,15 @@ function (tactic) {
 
 				/**
 				 * @param {Number} timer
+				 * @param {Number} timerIndex
 				 */
-				function (timer) {
+				function (timer, timerIndex) {
 
 					// Clear timeout.
-					clearTimeout(timer);
+					that.timeline.clearTimeout(timer);
+
+					// Delete object.
+					delete (that.timers[timerIndex]);
 
 				}
 			);
@@ -3226,11 +3985,55 @@ function (tactic) {
 				 */
 				function (event, eventIndex) {
 
-					// Check if event equals something.
+					// Check if event exists.
 					if (event) {
 
 						// Remove event, will return null if operation is successful.
 						that.events[eventIndex] = utils.removeEventSimple(event.target, event.type, event.callback);
+
+						// Delete object.
+						delete (that.events[eventIndex]);
+
+					}
+
+				}
+			);
+
+			// Loop all layer related timers.
+			utils.each(that.gestures,
+
+				/**
+				 * @param {Object} gesture
+				 * @param {Number} gestureIndex
+				 */
+				function (gesture, gestureIndex) {
+
+					// Check if gesture exists.
+					if (gesture) {
+
+						// Loop all layer related timers.
+						utils.each(gesture.events,
+
+							/**
+							 * @param {Object} event
+							 * @param {Number} eventIndex
+							 */
+							function (event, eventIndex) {
+
+								// Check if event exists.
+								if (event) {
+
+									// Remove event, will return null if operation is successful.
+									that.gestures[gestureIndex].events[eventIndex] = utils.removeEventSimple(event.target, event.type, event.callback);
+
+								}
+
+							}
+						);
+
+						// Delete object.
+						// that.gestures[gestureIndex] = null;
+						delete (that.gestures[gestureIndex]);
 
 					}
 
@@ -3267,7 +4070,6 @@ function (tactic) {
 					// Check if style is valid.
 					if (style) {
 
-
 						// Try to delete style rule.
 						utils.deleteCssRule(style.sheet, style.rule);
 
@@ -3284,6 +4086,13 @@ function (tactic) {
 			// Destroy macros.
 			that.macros.local = {};
 			that.macros.global = {};
+
+			// Destroy feed data.
+			that.feed = {};
+
+			// Destroy animation data.
+			// Styles should be already destroyed togeter with attributes.
+			this.anims = {};
 
 			// Indicate that layer is no longer initialised.
 			that.inited = false;
@@ -3325,7 +4134,7 @@ function (tactic) {
 			that = this;
 
 		// Log event.
-		that.logs.push([((new Date()).getTime() - (that.root ? that.root.timestamp : (new Date()).getTime()) / 1000).toFixed(2), event.type, ((event.detail && event.detail.key) ? event.detail.key
+		that.logs.push([((new Date()).getTime() - that.root.timestamp / 1000).toFixed(2), event.type, ((event.detail && event.detail.key) ? event.detail.key
 			: null)]);
 
 		// Return callback return.
@@ -3341,8 +4150,9 @@ function (tactic) {
 	 * @param {Array} [args] - Parent layer.
 	 * @param {Array} [excepts] - Layer key exceptions.
 	 * @param {Number} [depth] - Execution recursion depth.
+	 * @param {Number} [delay] - Execution recursion delay.
 	 */
-	layers.AbstractLayer.prototype.execute = function (func, apply, args, excepts, depth) {
+	layers.AbstractLayer.prototype.execute = function (func, apply, args, excepts, depth, delay) {
 
 		var
 
@@ -3351,7 +4161,7 @@ function (tactic) {
 			 */
 			that = this;
 
-		// Validate recursion depth to secure CPU.
+		// Validate recursion depth to secure CDU.
 		depth = isNaN(depth) ? 100 : depth;
 
 		// Check if function has to be executed on current level.
@@ -3378,11 +4188,31 @@ function (tactic) {
 		// Check if recursion depth allows to execute function on nested levels.
 		if (depth > 0) {
 
+			var
+
+				/**
+				 * @type {Function}
+				 * @param {tactic.builder.layers.AbstractLayer} [object]
+				 *
+				 */
+				execute = function (object) {
+
+					// // Request timeout to set a delay in order to diversificate CPU load.
+					// // NB! BETA try. Sequence play does not work.
+					// that.timeline.setTimeout(function () {
+					// }, (delay > 0 ? delay : 0));
+
+					// Keep executing on related frames.
+					object.execute(func, true, args, excepts, (depth - 1));
+
+				};
+
 			// Loop all layers.
 			for (var i in that.layers) {
 
 				// Keep executing on related layers.
-				that.layers[i].execute(func, true, args, excepts, (depth - 1));
+				// that.layers[i].execute(func, true, args, excepts, (depth - 1));
+				execute(that.layers[i]);
 
 			}
 
@@ -3393,7 +4223,8 @@ function (tactic) {
 				for (var j in that.frames) {
 
 					// Keep executing on related frames.
-					that.frames[j].execute(func, true, args, excepts, (depth - 1));
+					// that.frames[j].execute(func, true, args, excepts, (depth - 1));
+					execute(that.frames[j]);
 
 				}
 
@@ -3743,9 +4574,7 @@ function (tactic) {
 
 							// Check if attribute has name.
 							// Assign style to style registry.
-							that.attrs.styles[styleName] = utils.createCssRule(that.selector + (attr.name ? ' .' + attr.name : '') + ((selector.substr(0, 1) === ':')
-								? selector
-								: ' ' + selector), styleString);
+							that.attrs.styles[styleName] = utils.createCssRule(that.selector + (attr.name ? ' .' + attr.name : '') + ((selector.substr(0, 1) === ':') ? selector : ' ' + selector), styleString);
 
 						}
 
@@ -4040,6 +4869,269 @@ function (tactic) {
 	};
 
 	/**
+	 * Add animation.
+	 *
+	 * @function
+	 * @param {String} key
+	 * @param {(Object|String)} anim
+	 * @param {Boolean} [anim.enabled]
+	 * @param {String} [anim.name]
+	 * @param {String} [anim.target]
+	 * @param {Boolean} [anim.skip]
+	 * @param {Boolean} [anim.apply]
+	 * @return {Boolean}
+	 */
+	layers.AbstractLayer.prototype.addAnim = function (key, anim) {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.AbstractLayer}
+			 */
+			that = this;
+
+		if (!utils.isEmptyString(key)) {
+
+			// Check if animation is enabled.
+			if (utils.isObject(anim) && anim.enabled !== false && !utils.isEmptyString(anim.name)) {
+
+				// Check if attribute is already set.
+				if (!that.anims[key]) {
+
+					// Create new animation attribute.
+					that.anims[key] = {
+
+						/**
+						 * @type {String}
+						 */
+						name: anim.name,
+
+						/**
+						 * @type {Boolean}
+						 */
+						apply: utils.isTypeOf(utils.isBoolean, anim.apply, true),
+
+						/**
+						 * @type {Object}
+						 */
+						target: (anim.target === 'wrapper' || anim.target === 'holder') ? that[anim.target] : that,
+
+						/**
+						 * @type {Object}
+						 */
+						skip: utils.isTypeOf(utils.isBoolean, anim.skip, true)
+
+					};
+
+					// Check if animation attribute has to be applied.
+					if (that.anims[key].apply) {
+
+						// Apply animation class to related target.
+						that.anims[key].target.addAttr(that.anims[key].name);
+
+					}
+
+					return true;
+				}
+
+			}
+
+		}
+
+		return false;
+	};
+
+	/**
+	 * Add layer animations.
+	 *
+	 * @function
+	 * @param {(String|Array|Object)} query
+	 * @return {Boolean}
+	 */
+	layers.AbstractLayer.prototype.addAnims = function (query) {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.AbstractLayer}
+			 */
+			that = this;
+
+		// Check is animation is string.
+		if (utils.isString(query)) {
+
+			// Modify it to array.
+			query = [query];
+
+		}
+
+		if (utils.isArray(query)) {
+
+			var
+
+				/**
+				 * @type {Number}
+				 */
+				count = 0;
+
+			// Loop all animations.
+			utils.each(query,
+
+				/**
+				 * @param {Object} anim
+				 */
+				function (anim) {
+
+					count++;
+
+					// Add attribute.
+					that.addAnim(count.toString(), anim);
+
+				}
+			);
+
+		}
+
+		// In case of object.
+		else if (utils.isObject(query)) {
+
+			// Loop all animations.
+			utils.each(query,
+
+				/**
+				 * @param {Object} anim
+				 * @param {String} animKey
+				 */
+				function (anim, animKey) {
+
+					// Add attribute.
+					that.addAnim(animKey, anim);
+
+				}
+			);
+
+		} else {
+
+			return false;
+		}
+
+		return true;
+	};
+
+	/**
+	 * Remove animation.
+	 *
+	 * @function
+	 * @param {String} key
+	 * @return {Boolean}
+	 */
+	layers.AbstractLayer.prototype.removeAnim = function (key) {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.AbstractLayer}
+			 */
+			that = this;
+
+		// Check if animation exists.
+		if (!utils.isEmptyString(key) && that.anims[key]) {
+
+			// Remove animation.
+			that.anims[key] = null;
+
+		}
+
+		return true;
+	};
+
+	/**
+	 * Remove layer animations.
+	 *
+	 * @function
+	 * @param {(String|Array|Object)} query
+	 * @return {Boolean}
+	 */
+	layers.AbstractLayer.prototype.removeAnims = function (query) {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.AbstractLayer}
+			 */
+			that = this;
+
+		// Check is animation is string.
+		if (utils.isString(query)) {
+
+			// Modify it to array.
+			query = [query];
+
+		}
+
+		if (utils.isArray(query)) {
+
+			// Loop all animations.
+			utils.each(query,
+
+				/**
+				 * @param {String} animKey
+				 */
+				function (animKey) {
+
+					// Remove animation.
+					that.removeAnim(animKey);
+
+				}
+			);
+
+		}
+
+		// In case of object.
+		else if (utils.isObject(query)) {
+
+			// Loop all animations.
+			utils.each(query,
+
+				/**
+				 * @param {Object} anim
+				 * @param {String} animKey
+				 */
+				function (anim, animKey) {
+
+					// Remove animation.
+					that.removeAnim(animKey);
+
+				}
+			);
+
+		} else {
+
+			return false;
+		}
+
+		return true;
+	};
+
+	/**
+	 * Find all layer related animations.
+	 *
+	 * @function
+	 * @return {Object}
+	 */
+	layers.AbstractLayer.prototype.getAnims = function () {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.AbstractLayer}
+			 */
+			that = this;
+
+		return that.anims;
+	};
+
+	/**
 	 * Find layer target.
 	 *
 	 * @function
@@ -4115,7 +5207,7 @@ function (tactic) {
 			// Define layer
 			layer = layers[layerIndex];
 
-			// Check if layer key equals search.
+			// Check if layer key es search.
 			if (layer.key === key) {
 				return layer;
 			}
@@ -4206,7 +5298,7 @@ function (tactic) {
 			 */
 			function (layer) {
 
-				// Check if layer key equals query.
+				// Check if layer key es query.
 				if (layer.key === query) {
 
 					// Push layer to stack;
@@ -4281,7 +5373,7 @@ function (tactic) {
 							 */
 							keyClone = utils.cloneObject(layer.key);
 
-						// Replace numbers and check if key equals query.
+						// Replace numbers and check if key es query.
 						if (keyClone.replace(/[0-9]/g, '#') === query) {
 
 							// Push layer to stack.
@@ -4344,228 +5436,6 @@ function (tactic) {
 	};
 
 	/**
-	 * Joint layer constructor.
-	 *
-	 * @constructor
-	 * @param {String} key - Component key.
-	 * @param {Object} data - Component data.
-	 * @param {Function} [callback] - Complete event handler.
-	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
-	 * @param {Object} [override] - Component parameters.
-	 * @param {Number} [index] - Layer index (if is part of array).
-	 */
-	layers.AdaptiveLayer = function (key, data, callback, parent, override, index) {
-
-		/**
-		 * @type {String}
-		 */
-		this.type = 'AdaptiveLayer';
-
-		// Set layer parameters and properties.
-		this.set(key, data, callback, parent, override, index);
-
-		/**
-		 * @type {Object}
-		 */
-		this.props = {
-
-			/**
-			 * @type {tactic.builder.props.TensionProp}
-			 */
-			tension: null,
-
-			/**
-			 * @type {tactic.builder.props.ScaleProp}
-			 */
-			scale: null,
-
-			/**
-			 * @type {tactic.builder.props.FontProp}
-			 */
-			font: null
-
-		};
-
-		// Trigger event.
-		this.trigger({
-
-			/**
-			 * @type {String}
-			 */
-			type: 'set'
-
-		});
-
-	};
-	layers.AdaptiveLayer.prototype = new layers.AbstractLayer();
-	layers.AdaptiveLayer.prototype.constructor = layers.AdaptiveLayer;
-
-	/**
-	 * Initialise layer properties.
-	 *
-	 * @function
-	 * @param {Object} data
-	 * @return {Boolean}
-	 */
-	layers.AdaptiveLayer.prototype.initProps = function (data) {
-
-		var
-
-			/**
-			 * @type {tactic.builder.layers.AdaptiveLayer}
-			 */
-			that = this;
-
-		// Check if layer is not yet initialised.
-		if (!that.inited) {
-
-			// Create new scale property.
-			that.props.scale = new props.ScaleProp(data.scale);
-
-			// Initialise scale property.
-			that.props.scale.update(that.width(), that.height());
-
-			// Check if property is enabled.
-			if (that.props.scale.enabled) {
-
-				// // Add param macros.
-				// // NB! Macro replacement utility may reduce banner performance, use this feature wisely.
-				// that.addMacro(that.props.scale.name, {
-				//
-				// 	/**
-				// 	 * Validate if global.
-				// 	 * @type  {String}
-				// 	 */
-				// 	global: true,
-				//
-				// 	/**
-				// 	 * @type {String}
-				// 	 */
-				// 	value: that.props.scale.value
-				//
-				// });
-
-				// Add attribute.
-				that.addAttr(that.props.scale.name, {
-
-					/**
-					 * Validate if global.
-					 * @type  {Boolean}
-					 */
-					global: true,
-
-					/**
-					 * @type {String}
-					 */
-					name: that.props.scale.name + '_' + that.props.scale.value
-
-				});
-
-				// Check if font scale is updated.
-				if (that.props.scale.font.value > 0) {
-
-					// Add font size attribute.
-					that.addAttr(that.props.scale.name + '_font', {
-
-						/**
-						 * @type {Object}
-						 */
-						css: {
-
-							/**
-							 * @type {String}
-							 */
-							'font-size': that.props.scale.font.value + 'px'
-
-						}
-
-					});
-
-				}
-
-			}
-
-			// Create new tension property.
-			that.props.tension = new props.TensionProp(data.tension);
-
-			// Initialise tension property.
-			that.props.tension.update(that.width(), that.height());
-
-			// Check if property is enabled.
-			if (that.props.tension.enabled) {
-
-				// // Add param macros.
-				// // NB! Macro replacement utility may reduce banner performance, use this feature wisely.
-				// that.addMacro(that.props.tension.name, {
-				//
-				// 	/**
-				// 	 * Validate if global.
-				// 	 * @type  {Boolean}
-				// 	 */
-				// 	global: true,
-				//
-				// 	/**
-				// 	 * @type {String}
-				// 	 */
-				// 	value: that.props.tension.value
-				//
-				// });
-
-				// Add attribute.
-				that.addAttr(that.props.tension.name, {
-
-					/**
-					 * Validate if global.
-					 * @type  {Boolean}
-					 */
-					global: true,
-
-					/**
-					 * @type {String}
-					 */
-					name: that.props.tension.name + '_' + that.props.tension.value
-
-				});
-
-			}
-
-			if (data.orientation) {
-
-				// Create new orientation property.
-				that.props.orientation = new props.OrientationProp(data.orientation);
-
-				// Initialise orientation property.
-				that.props.orientation.update(that.width(), that.height());
-
-				// Check if property is enabled.
-				if (that.props.orientation.enabled) {
-
-					// Add orientation attribute.
-					that.addAttr(that.props.orientation.name, {
-
-						/**
-						 * @type {String}
-						 */
-						name: that.props.orientation.name + '_' + that.props.orientation.value,
-
-						/**
-						 * @type {Boolean}
-						 */
-						global: true
-
-					});
-
-				}
-
-			}
-
-			return true;
-		}
-
-		return false;
-	};
-
-	/**
 	 * Creative layer constructor.
 	 *
 	 * @constructor
@@ -4583,6 +5453,52 @@ function (tactic) {
 
 		// Define creative.
 		this.root = this;
+
+		// Try to replace macros in the data.
+		// This is required for temporary dynamic preview solution in Brandmaster encironment.
+		try {
+
+			// console.log(encodeURIComponent('{"${dealer_name}":"Deaker","${dealer_price}":"300"}'));
+			// ?macros=%7B%22%24%7Bdealer_name%7D%22%3A%22Deaker%22%2C%22%24%7Bdealer_price%7D%22%3A%22300%22%7D
+
+			var
+
+				/**
+				 * Get URL parameter with macros and convert it to object.
+				 * @type {String}
+				 */
+				url_macros = utils.getQsParam('bm_macros');
+
+			// Check if macros are defined.
+			if (!utils.isEmptyString(url_macros)) {
+
+				var
+
+					/**
+					 * @type {Object}
+					 */
+					macros = JSON.parse(decodeURIComponent(url_macros)),
+
+					/**
+					 * @type {String}
+					 */
+					data_temp = JSON.stringify(data),
+
+					/**
+					 * @type {RegExp}
+					 */
+					reg_ex = new RegExp(Object.keys(macros).join('|').replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'), 'gi');
+
+				data_temp = data_temp.replace(reg_ex, function(matched) {
+					return macros[matched];
+				});
+
+				data = JSON.parse(data_temp);
+
+			}
+
+		} catch (e) {
+		}
 
 		// Set layer parameters and properties.
 		this.set(key, data, callback, null, override);
@@ -4665,7 +5581,17 @@ function (tactic) {
 			/**
 			 * @type {Object}
 			 */
-			resize: null
+			resize: null,
+
+			/**
+			 * @type {Object}
+			 */
+			interaction_mousedown: null,
+
+			/**
+			 * @type {Object}
+			 */
+			interaction_touchstart: null
 
 		};
 
@@ -4703,6 +5629,11 @@ function (tactic) {
 		 * @type {Boolean}
 		 */
 		this.entered = true;
+
+		/**
+		 * @type {Boolean}
+		 */
+		this.interacted = false;
 
 		// Trigger event.
 		this.trigger({
@@ -4780,6 +5711,22 @@ function (tactic) {
 
 			});
 
+			// Add property macros.
+			// NB! Macro replacement utility may reduce banner performance, use this feature wisely.
+			that.addMacro('speed', {
+
+				/**
+				 * @type {Boolean}
+				 */
+				global: true,
+
+				/**
+				 * @type {Number}
+				 */
+				value: that.timeline.speed
+
+			});
+
 			// Update macro object as new macros were probably added to layer from data.
 			macros = that.getMacros();
 
@@ -4804,14 +5751,14 @@ function (tactic) {
 			// Initialise definition.
 			that.initDefinition(utils.extractExceptions(utils.replaceMacros(utils.isTypeOf(utils.isObject, data.definition, {}), macros), attrs));
 
-			// Initialise clicktag.
+			// Initialise click tag.
 			that.initClicktag(utils.extractExceptions(utils.replaceMacros(utils.isTypeOf(utils.isObject, data.clicktag, {}), macros), attrs));
 
 			// Initialise feeds.
 			that.initFeeds(utils.extractExceptions(utils.replaceMacros(utils.isTypeOf(utils.isObject, data.feeds, {}), macros), attrs));
 
 			// Initialise fonts.
-			that.initFonts(utils.extractExceptions(utils.replaceMacros(utils.isTypeOf(utils.isObject, data.fonts, {}), macros), attrs));
+			that.initFonts(utils.extractExceptions(utils.replaceMacros(utils.isTypeOf(utils.isObject, data.fonts, {}), macros), attrs.concat([that.props.vendor.value])));
 
 			// Initialise static assets.
 			that.initSources();
@@ -4824,12 +5771,12 @@ function (tactic) {
 
 			// Stop creative after some period of time.
 			// NB! The most ad networks require creative to stop in 30 seconds.
-			that.timers.stop = setTimeout(function () {
+			that.timers.stop = that.timeline.setTimeout(function () {
 
 				// Stop creative.
 				that.stop();
 
-			}, (that.params.stop.after - ((new Date()).getTime() - that.timestamp)));
+			}, that.params.stop.after);
 
 			// Add resize event listener.
 			that.events.resize = utils.addEventSimple(window, 'resize', function () {
@@ -4839,12 +5786,28 @@ function (tactic) {
 
 			});
 
+			// Add mouseover event listener.
+			that.events.interaction_mousedown = utils.addEventSimple(that.target, 'mousedown', function () {
+
+				// Apply interaction flag.
+				that.interact();
+
+			});
+
+			// Add mouseover event listener.
+			that.events.interaction_touchstart = utils.addEventSimple(that.target, 'touchstart', function () {
+
+				// Apply interaction flag.
+				that.interact();
+
+			});
+
 			// Indicate that layer is initialised.
 			that.inited = true;
 
 			// Set timeout on asset source placement.
 			// Pause is required to give time to DOM elements to append.
-			that.timers.init = setTimeout(function () {
+			that.timers.init = that.timeline.setTimeout(function () {
 
 				// Trigger event.
 				that.trigger({
@@ -4886,6 +5849,22 @@ function (tactic) {
 			// Validate creative mode.
 			// Check if advert ID is provided, means banner is live.
 			that.mode = (mode === 'capture') ? mode : (container.ADVERT_ID > 0 ? 'live' : utils.isTypeOf(utils.isString, mode, 'live'));
+
+			// Add attribute.
+			that.addAttr(that.mode, {
+
+				/**
+				 * @type {String}
+				 */
+				name: that.mode,
+
+				/**
+				 * Validate if global.
+				 * @type  {Boolean}
+				 */
+				global: true
+
+			});
 
 			return true;
 		}
@@ -4986,24 +5965,24 @@ function (tactic) {
 
 						});
 
-						if (propIndex !== 'domain') {
-
-							// Add resize attribute to holder.
-							that.addAttr(prop.name, {
-
-								/**
-								 * @type {Boolean}
-								 */
-								global: true,
-
-								/**
-								 * @type {String}
-								 */
-								name: prop.name + '_' + prop.value
-
-							});
-
-						}
+						// if (propIndex !== 'domain') {
+						//
+						// 	// Add resize attribute to holder.
+						// 	that.addAttr(prop.name, {
+						//
+						// 		/**
+						// 		 * @type {Boolean}
+						// 		 */
+						// 		global: true,
+						//
+						// 		/**
+						// 		 * @type {String}
+						// 		 */
+						// 		name: prop.name + '_' + prop.value
+						//
+						// 	});
+						//
+						// }
 
 					}
 
@@ -5161,6 +6140,14 @@ function (tactic) {
 
 						}
 
+						// Check if font name is boolean.
+						if (!font.alt) {
+
+							// Set font name same as font key.
+							font.alt = 'sans-serif';
+
+						}
+
 						var
 
 							/**
@@ -5182,6 +6169,11 @@ function (tactic) {
 								 * @type {String}
 								 */
 								'font-style': utils.isTypeOf(utils.isString, font.style, 'normal'),
+
+								/**
+								 * @type {String}
+								 */
+								'font-display': 'swap',
 
 								/**
 								 * @type {Array}
@@ -5210,7 +6202,7 @@ function (tactic) {
 											/**
 											 * @type {String}
 											 */
-											url: font.url + '.' + fontType
+											url: utils.getAssetUrl(font.url + '.' + fontType)
 
 										});
 
@@ -5220,7 +6212,7 @@ function (tactic) {
 											/**
 											 * @type {String}
 											 */
-											url: font.url + '.' + fontType + '#iefix',
+											url: utils.getAssetUrl(font.url + '.' + fontType + '#iefix'),
 
 											/**
 											 * @type {String}
@@ -5239,7 +6231,7 @@ function (tactic) {
 											/**
 											 * @type {String}
 											 */
-											url: font.url + '.' + fontType,
+											url: utils.getAssetUrl(font.url + '.' + fontType),
 
 											/**
 											 * @type {String}
@@ -5302,7 +6294,7 @@ function (tactic) {
 									/**
 									 * @type {String}
 									 */
-									'font-family': fontKey
+									'font-family': '"' + fontKey + '", "' + font.alt + '"'
 
 								}
 
@@ -5311,10 +6303,10 @@ function (tactic) {
 						}
 
 						// Check if tags are defined for this font.
-						if (utils.isArray(font.selectors)) {
+						if (utils.isArray(font.selector)) {
 
 							// Loop all tags.
-							utils.each(font.selectors,
+							utils.each(font.selector,
 
 								/**
 								 * @function
@@ -5341,7 +6333,7 @@ function (tactic) {
 												/**
 												 * @type {String}
 												 */
-												'font-family': fontKey
+												'font-family': '"' + fontKey + '", "' + font.alt + '"'
 
 											}
 
@@ -5496,9 +6488,10 @@ function (tactic) {
 	 * Initialise layer properties.
 	 *
 	 * @function
+	 * @param {Array} [data]
 	 * @return {Boolean}
 	 */
-	layers.BannerLayer.prototype.initSources = function () {
+	layers.BannerLayer.prototype.initSources = function (data) {
 
 		var
 
@@ -5618,7 +6611,7 @@ function (tactic) {
 	 *
 	 * @function
 	 * @param {Object} data
-	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
+	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
 	 * @return {Boolean}
 	 */
 	layers.BannerLayer.prototype.build = function (data, parent) {
@@ -5645,7 +6638,7 @@ function (tactic) {
 					var
 
 						/**
-						 * @type {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)}
+						 * @type {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)}
 						 */
 						LayerConstructor = utils.isTypeOf(utils.isFunction, layerData ? layers[(utils.isString(layerData.type)
 							? layerData.type.split('Component').join('Layer') : null)] : null, null);
@@ -5660,7 +6653,7 @@ function (tactic) {
 					var
 
 						/**
-						 * @type {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)}
+						 * @type {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)}
 						 */
 						newLayer = that.trigger({
 
@@ -5675,7 +6668,7 @@ function (tactic) {
 							detail: {
 
 								/**
-								 * @type {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)}
+								 * @type {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)}
 								 */
 								Constructor: LayerConstructor,
 
@@ -5837,7 +6830,6 @@ function (tactic) {
 				 * @return {Boolean}
 				 */
 				isLoaded = function () {
-
 					return fontLoad.count >= fontLoad.list.length && feedLoad.count >= feedLoad.list.length && assetLoad.count >= assetLoad.list.length;
 				},
 
@@ -5865,7 +6857,7 @@ function (tactic) {
 						if (loadTimeout || isLoaded()) {
 
 							// Clear load timer.
-							clearTimeout(that.timers.load);
+							that.timeline.clearTimeout(that.timers.load);
 
 							// Indicate that creative is now loaded.
 							that.loaded = true;
@@ -5949,12 +6941,19 @@ function (tactic) {
 						 */
 						that.feeds[feedKey].key = feedKey;
 
-						if (feed.enabled && utils.isUrl(feed.source)) {
+						var
 
-							feedLoad.list.push(feed.source);
+							/**
+							 * @type {String}
+							 */
+							feed_url = utils.getAssetUrl(feed.source);
+
+						if (feed.enabled && utils.isUrl(feed_url)) {
+
+							feedLoad.list.push(feed_url);
 
 							// Load feed and wait for response.
-							utils.get(feed.source + '&r=' + Math.round(Math.random() * 999999999),
+							utils.get((feed_url.indexOf('127.0.0.1') !== -1) ? feed_url : feed_url + '&r=' + Math.round(Math.random() * 999999999),
 
 								/**
 								 * @function
@@ -6042,19 +7041,19 @@ function (tactic) {
 					if (!utils.isEmptyString(font)) {
 
 						// Watch for font load.
-						utils.watchFont(font, null,
+						utils.watchFont(font, font,
 
 							/**
-							 * @param {String} fontName
+							 * @param {String} fontKey
 							 * @param {Boolean} isLoaded
 							 */
-							function (fontName, isLoaded) {
+							function (fontKey, isLoaded) {
 
 								// Check if font is located in font registry.
-								if (that.fonts[fontName]) {
+								if (that.fonts[fontKey]) {
 
 									// Set font load state.
-									that.fonts[fontName].loaded = isLoaded;
+									that.fonts[fontKey].loaded = isLoaded;
 
 								}
 
@@ -6063,6 +7062,11 @@ function (tactic) {
 
 							}
 						);
+
+					} else {
+
+						// Execute font load handler to analyse state.
+						loadHandler(fontLoad);
 
 					}
 
@@ -6126,7 +7130,7 @@ function (tactic) {
 			loadHandler();
 
 			// Set load timeout to secure banner appearance if something didn't load.
-			that.timers.load = setTimeout(function () {
+			that.timers.load = that.timeline.setTimeout(function () {
 
 				// Update timeout flag.
 				loadTimeout = true;
@@ -6160,7 +7164,23 @@ function (tactic) {
 		// Check if layer is initialised.
 		if (that.inited && !that.captured) {
 
-			that.timers.capture = setTimeout(function () {
+			// Clear stop timer.
+			that.timeline.clearTimeout(that.timers.capture);
+
+			// Let other operation end by triggering event on a next frame.
+			that.timers.capture = that.timeline.setTimeout(function () {
+
+				// Give time for banner elements to load.
+				// Capture creative with a 3 second (default) delay.
+				that.timers.capture = that.timeline.setTimeout(function () {
+
+					// Set captured flag.
+					that.captured = true;
+
+					// Indicate that banner snapshot can be taken now.
+					window.TACTIC_CAPTURE = true;
+
+				}, that.params.capture.delay);
 
 				// Call on capture callback.
 				that.trigger({
@@ -6171,18 +7191,6 @@ function (tactic) {
 					type: 'capture'
 
 				});
-
-				// Give time for banner elements to load.
-				// Capture creative with a 3 second (default) delay.
-				that.timers.capture = setTimeout(function () {
-
-					// Set captured flag.
-					that.captured = true;
-
-					// Indicate that banner snapshot can be taken now.
-					window.TACTIC_CAPTURE = true;
-
-				}, that.params.capture.delay);
 
 			}, 0);
 
@@ -6195,6 +7203,7 @@ function (tactic) {
 	/**
 	 * Stop entire creative animation and playback.
 	 *
+	 * @function
 	 * @function
 	 * @return {Boolean}
 	 */
@@ -6211,20 +7220,25 @@ function (tactic) {
 		if (that.inited) {
 
 			// Clear stop timer.
-			clearTimeout(that.timers.stop);
+			that.timeline.clearTimeout(that.timers.stop);
 
-			// Indicate that creative is stopped.
-			that.stopped = true;
+			// Let other operation end by triggering event on a next frame.
+			that.timers.stop = that.timeline.setTimeout(function () {
 
-			// Trigger event.
-			that.trigger({
+				// Indicate that creative is stopped.
+				that.stopped = true;
 
-				/**
-				 * @type {String}
-				 */
-				type: 'stop'
+				// Trigger event.
+				that.trigger({
 
-			});
+					/**
+					 * @type {String}
+					 */
+					type: 'stop'
+
+				});
+
+			}, 0);
 
 			return true;
 		}
@@ -6264,10 +7278,10 @@ function (tactic) {
 		if (that.inited) {
 
 			// Clear resize timer.
-			clearTimeout(that.timers.resize);
+			that.timeline.clearTimeout(that.timers.resize);
 
 			// Set new resize threshold.
-			that.timers.resize = setTimeout(function () {
+			that.timers.resize = that.timeline.setTimeout(function () {
 
 				// Trigger event.
 				that.trigger({
@@ -6285,6 +7299,47 @@ function (tactic) {
 		}
 
 		return false;
+	};
+
+	/**
+	 * Set interaction flag.
+	 *
+	 * @function
+	 * @return {Boolean}
+	 */
+	layers.BannerLayer.prototype.interact = function () {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.BannerLayer}
+			 */
+			that = this;
+
+		// Check if creative is initialised.
+		if (that.inited) {
+
+			// Remove event as we don't need it any more.
+			utils.removeEventSimple(that.target, 'mouseover', that.events.interaction_mousedown.callback);
+
+			// Remove event as we don't need it any more.
+			utils.removeEventSimple(that.target, 'touchstart', that.events.interaction_touchstart.callback);
+
+			// Set interaction flag.
+			that.interacted = true;
+
+			// Trigger event.
+			that.trigger({
+
+				/**
+				 * @type {String}
+				 */
+				type: 'interaction'
+
+			});
+
+		}
+
 	};
 
 	/**
@@ -6328,7 +7383,7 @@ function (tactic) {
 	 * @param {String} key - Component key.
 	 * @param {Object} data - Component data.
 	 * @param {Function} [callback] - Complete event handler.
-	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
+	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
 	 * @param {Object} [override] - Component parameters.
 	 * @param {Number} [index] - Layer index (if is part of array).
 	 */
@@ -6408,6 +7463,40 @@ function (tactic) {
 	};
 
 	/**
+	 * Initialise layer macros.
+	 *
+	 * @function
+	 * @param {Object} data
+	 * @return {Boolean}
+	 */
+	layers.FrameLayer.prototype.initMacros = function (data) {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.AbstractLayer}
+			 */
+			that = this;
+
+		// Check if layer is not yet initialised.
+		if (!that.inited) {
+
+			// Add frame index macro.
+			that.addMacro('index', {
+				value: that.index,
+				global: true
+			});
+
+			// Validate data.
+			// Replace inherited macros in macro object and add those to layer.
+			// NB! Macro replacement utility may reduce banner performance, use this feature wisely.
+			return that.addMacros(data);
+		}
+
+		return false;
+	};
+
+	/**
 	 * Image layer constructor.
 	 * Places image HTML element into DOM.
 	 *
@@ -6415,7 +7504,7 @@ function (tactic) {
 	 * @param {String} key - Component key.
 	 * @param {Object} data - Component data.
 	 * @param {Function} [callback] - Complete event handler.
-	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
+	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
 	 * @param {Object} [override] - Component parameters.
 	 * @param {Number} [index] - Layer index (if is part of array).
 	 */
@@ -6437,12 +7526,7 @@ function (tactic) {
 			/**
 			 * @type {tactic.builder.props.PositionProp}
 			 */
-			position: null,
-
-			/**
-			 * @type {tactic.builder.props.OrientationProp}
-			 */
-			orientation: null
+			position: null
 
 		};
 
@@ -6502,6 +7586,9 @@ function (tactic) {
 	 */
 	layers.ImageLayer.prototype.initProps = function (data) {
 
+		// Execute initial function.
+		layers.AbstractLayer.prototype.initProps.apply(this, [data]);
+
 		var
 
 			/**
@@ -6516,27 +7603,6 @@ function (tactic) {
 			that.props.position = new props.PositionProp(data.position);
 
 			// Position property will be initialised on asset creation, as it requires asset source width and height dimensions and layer parameters.
-
-			// Create new orientation property.
-			that.props.orientation = new props.OrientationProp(data.orientation);
-
-			// Initialise orientation property.
-			that.props.orientation.update(that.width(), that.height());
-
-			// Check if property is enabled.
-			if (that.props.orientation.enabled) {
-
-				// Add orientation attribute.
-				that.addAttr(that.props.orientation.name, {
-
-					/**
-					 * @type {String}
-					 */
-					name: that.props.orientation.name + '_' + that.props.orientation.value
-
-				});
-
-			}
 
 			return true;
 		}
@@ -6612,13 +7678,90 @@ function (tactic) {
 				scale: utils.isTypeOf(utils.isString, data.scale, 'fill'),
 
 				/**
-				 * Validate if image source has to be slideed at some value (source size multiplier).
+				 * Validate if image source has to be zoomed at some value (source size multiplier).
 				 * For example if you have slide in effect, and don't want to loose quality.
 				 * @type  {Number}
 				 */
-				ratio: Number(utils.isTypeOf(utils.isNumber, data.ratio, 1))
+				ratio: Number(utils.isTypeOf(utils.isNumber, data.ratio, 1)),
+
+				// /**
+				//  * Check if minimal asset sizes has to be taken in consideration.
+				//  * @type  {Number}
+				//  */
+				// limit: Number(utils.isTypeOf(utils.isNumber, data.limit, 320))
+
+				/**
+				 * @type  {Object}
+				 */
+				limit: {
+
+					/**
+					 * Check if minimal asset size has to be taken in consideration.
+					 * @type  {Number}
+					 */
+					min: Number(utils.isTypeOf(utils.isNumber, utils.getObjectDeep(data, 'limit.min'), 320)),
+
+					/**
+					 * Check if maximum asset size has to be taken in consideration.
+					 * @type  {Number}
+					 */
+					max: Number(utils.isTypeOf(utils.isNumber, utils.getObjectDeep(data, 'limit.max'), 1920))
+
+				}
 
 			};
+
+			// Check if ratio is not less than 1.
+			if (that.params.ratio < 1) that.params.ratio = 1;
+
+			return true;
+		}
+
+		return false;
+	};
+
+	/**
+	 * Initialise layer sources.
+	 *
+	 * @function
+	 * @param {Array} data
+	 * @return {Boolean}
+	 */
+	layers.ImageLayer.prototype.initSources = function (data) {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.ImageLayer}
+			 */
+			that = this;
+
+		// Check if layer is not yet initialised.
+		if (!that.inited) {
+
+			// Check if data feeding is enabled.
+			if (that.feed.enabled) {
+
+				// Set sources.
+				that.sources = [
+					{
+						url: that.feed.value
+					}
+				];
+
+			}
+
+			// Check id data provided.
+			else if (utils.isArray(data) && data.length > 0) {
+
+				// Set sources.
+				that.sources = data;
+
+			} else {
+
+				that.sources = [];
+
+			}
 
 			return true;
 		}
@@ -6816,6 +7959,11 @@ function (tactic) {
 				// Remove load event listener.
 				that.events.error = utils.addEventSimple(that.asset.target, 'error', assetErrorHandler);
 
+				// // Timeout is required for very specific re-initialisation cases (added on Mar 2020 for telecom customer).
+				// that.timeline.setTimeout(function () {
+				//
+				// }, 0);
+
 				// Update asset scale and position depending on alignment and crop parameters.
 				// Update position, so correct source can be selected.
 				// This could lead to NaN for position.width and position.height, if dimensions are not set in data.
@@ -6826,7 +7974,7 @@ function (tactic) {
 				if (that.props.position.enabled) {
 
 					// Now, when we know appropriate asset source depending on scaling parameters, we can select appropriate size of the source.
-					that.asset.source = utils.getAssetSource(that.sources, that.props.position.width * that.params.ratio, that.props.position.height * that.params.ratio);
+					that.asset.source = utils.getAssetSource(that.sources, that.props.position.width * that.params.ratio, that.props.position.height * that.params.ratio, that.params.limit.min, that.params.limit.max);
 
 					if (!isNaN(that.props.position.width) && !isNaN(that.props.position.height)) {
 						setAttribute();
@@ -6835,7 +7983,7 @@ function (tactic) {
 				} else {
 
 					// Now, when we know appropriate asset source depending on scaling parameters, we can select appropriate size of the source.
-					that.asset.source = utils.getAssetSource(that.sources, that.width() * that.params.ratio, that.height() * that.params.ratio);
+					that.asset.source = utils.getAssetSource(that.sources, that.width() * that.params.ratio, that.height() * that.params.ratio, that.params.limit.min, that.params.limit.max);
 
 				}
 
@@ -6942,7 +8090,7 @@ function (tactic) {
 	 * @param {String} key - Component key.
 	 * @param {Object} data - Component data.
 	 * @param {Function} [callback] - Complete event handler.
-	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
+	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
 	 * @param {Object} [override] - Component parameters.
 	 * @param {Number} [index] - Layer index (if is part of array).
 	 */
@@ -6970,17 +8118,6 @@ function (tactic) {
 	layers.JointLayer.prototype = new layers.AbstractLayer();
 	layers.JointLayer.prototype.constructor = layers.JointLayer;
 
-	/**
-	 * Sequence layer constructor.
-	 *
-	 * @constructor
-	 * @param {String} key - Component key.
-	 * @param {Object} data - Component data.
-	 * @param {Function} [callback] - Complete event handler.
-	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
-	 * @param {Object} [override] - Component parameters.
-	 * @param {Number} [index] - Layer index (if is part of array).
-	 */
 	layers.SequenceLayer = function (key, data, callback, parent, override, index) {
 
 		/**
@@ -7145,21 +8282,7 @@ function (tactic) {
 				play: {
 
 					/**
-					 * Sequence will play after.
-					 * @type {Object}
-					 */
-					after: {
-
-						/**
-						 * Sequence will play after certain period of time (milliseconds).
-						 * @type {Number}
-						 */
-						time: utils.isTypeOf(utils.isNumber, utils.getObjectDeep(data, 'play.after.time'), 0)
-
-					},
-
-					/**
-					 * Sequence will play from specific frame state. "0" is equal to current frame.
+					 * Sequence will play from specific frame state. "0" is e to current frame.
 					 * @type {Number}
 					 */
 					from: utils.isTypeOf(utils.isNumber, utils.getObjectDeep(data, 'play.from'), 0)
@@ -7179,19 +8302,19 @@ function (tactic) {
 					after: {
 
 						/**
-						 * Sequence will pause after certain period of time (milliseconds). "0" is equal to never.
+						 * Sequence will pause after certain period of time (milliseconds). "0" is e to never.
 						 * @type {Number}
 						 */
 						time: utils.isTypeOf(utils.isNumber, utils.getObjectDeep(data, 'pause.after.time'), NaN),
 
 						/**
-						 * Sequence will pause after passing certain amount of frames. "NaN" is equal to not after any.
+						 * Sequence will pause after passing certain amount of frames. "NaN" is e to not after any.
 						 * @type {Number}
 						 */
 						frame: utils.isTypeOf(utils.isNumber, utils.getObjectDeep(data, 'pause.after.frame'), NaN),
 
 						/**
-						 * Sequence will pause after passing certain amount of loops. "NaN" is equal to not after any.
+						 * Sequence will pause after passing certain amount of loops. "NaN" is e to not after any.
 						 * @type {Number}
 						 */
 						loop: utils.isTypeOf(utils.isNumber, utils.getObjectDeep(data, 'pause.after.loop'), NaN)
@@ -7207,7 +8330,7 @@ function (tactic) {
 				stop: {
 
 					/**
-					 * Sequence will stop on specific frame state. "NaN" is equal to current frame.
+					 * Sequence will stop on specific frame state. "NaN" is e to current frame.
 					 * @type {Number}
 					 */
 					on: utils.isTypeOf(utils.isNumber, utils.getObjectDeep(data, 'stop.on'), NaN)
@@ -7249,6 +8372,33 @@ function (tactic) {
 	};
 
 	/**
+	 * Check if layer can be accessed.
+	 *
+	 * @function
+	 * @return {Boolean}
+	 */
+	layers.SequenceLayer.prototype.available = function () {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.AbstractLayer}
+			 */
+			that = this;
+
+		// Check if layer is initialised and enabled.
+		// if (that.inited && that.enabled && that.loaded) {
+		// Sequence
+		if (that.inited && that.enabled) {
+
+			// Check if layer is available depending on sequence position and creative stop flag.
+			return (that.sequence === that || (!that.sequence || !!that.entered));
+		}
+
+		return false;
+	};
+
+	/**
 	 * Start sequence layer.
 	 *
 	 * @function
@@ -7266,79 +8416,46 @@ function (tactic) {
 		// Check is layer is enabled.
 		if (that.inited && that.enabled) {
 
-			// Clear play timer.
-			clearTimeout(that.timers.play);
-
-			// Clear sequence change timer.
-			clearTimeout(that.timers.change);
-
-			// Clear sequence change timer.
-			clearTimeout(that.timers.pause);
-
+			// Check if layer wasn't started yet.
 			// Check if sequence is not stopped.
-			if (!that.stopped) {
+			if (utils.isUndefined(that.paused) && !that.stopped) {
 
-				// Check if layer wasn't started yet.
-				if (utils.isUndefined(that.paused)) {
+				// Clear sequence change timer.
+				that.timeline.clearTimeout(that.timers.change);
 
-					// Change layer pause flag.
-					that.paused = false;
+				// Check if sequence has to be paused after period of time.
+				if (!isNaN(that.params.pause.after.time)) {
 
-					// Set sequence rotation play timer.
-					that.timers.play = setTimeout(function () {
+					// Set sequence rotation pause timer.
+					that.timers.pause = that.timeline.setTimeout(function () {
 
-						// Trigger event.
-						that.trigger({
+						// Pause sequence.
+						that.pause();
 
-							/**
-							 * @type {String}
-							 */
-							type: 'play'
-
-						});
-
-						// Change frame state.
-						that.change(that.params.play.from);
-
-					}, that.params.play.after.time);
-
-					// Check if sequence has to be paused after period of time.
-					if (!isNaN(that.params.pause.after.time)) {
-
-						// Set sequence rotation pause timer.
-						that.timers.pause = setTimeout(function () {
-
-							// Pause sequence.
-							that.pause();
-
-						}, that.params.pause.after.time);
-
-					}
+					}, that.params.pause.after.time);
 
 				}
 
-				// Check if layer is paused.
-				else {
+				// Change layer pause flag.
+				that.paused = false;
 
-					// Change layer pause flag.
-					that.paused = false;
+				// Trigger event.
+				that.trigger({
 
-					// Trigger event.
-					that.trigger({
+					/**
+					 * @type {String}
+					 */
+					type: 'play'
 
-						/**
-						 * @type {String}
-						 */
-						type: 'play'
+				});
 
-					});
-
-					// Proceed changing frames in a sequence.
-					that.change(that.state);
-
-				}
+				// Change frame state.
+				that.change(that.params.play.from);
 
 			} else {
+
+				// Change layer pause flag.
+				that.paused = false;
 
 				// Just secure frame change in a sequence.
 				that.change(that.state);
@@ -7369,14 +8486,11 @@ function (tactic) {
 		// Check is layer is enabled.
 		if (that.inited && that.enabled) {
 
-			// Clear play timer.
-			clearTimeout(that.timers.play);
+			// Clear sequence change timer.
+			that.timeline.clearTimeout(that.timers.change);
 
 			// Clear sequence change timer.
-			clearTimeout(that.timers.change);
-
-			// Clear sequence change timer.
-			clearTimeout(that.timers.pause);
+			that.timeline.clearTimeout(that.timers.pause);
 
 			if (that.paused === false) {
 
@@ -7425,38 +8539,40 @@ function (tactic) {
 		// Check is layer is enabled.
 		if (that.inited && that.enabled) {
 
-			// Pause sequence.
-			that.pause();
+			// Clear sequence change timer.
+			that.timeline.clearTimeout(that.timers.stop);
+
+			// Clear sequence change timer.
+			that.timeline.clearTimeout(that.timers.change);
+
+			// Clear sequence change timer.
+			that.timeline.clearTimeout(that.timers.pause);
 
 			// Set pause state to undefined, so sequence won't start changing frames.
 			that.stopped = true;
 
-			// Check if sequence is not paused.
-			if (!isNaN(that.state)) {
+			// Trigger event.
+			that.trigger({
 
-				// Check if sequence has to be paused on a specific frame.
-				if (!isNaN(that.params.stop.on) && !ignoreStopOn) {
+				/**
+				 * @type {String}
+				 */
+				type: 'stop'
 
-					// Change sequence state.
-					that.change(that.params.stop.on);
+			});
 
-				}
+			// Check if sequence has to be paused on a specific frame.
+			if (!isNaN(that.params.stop.on) && !ignoreStopOn) {
 
-				// Trigger event.
-				that.trigger({
-
-					/**
-					 * @type {String}
-					 */
-					type: 'stop'
-
-				});
+				// Change sequence state.
+				that.change(that.params.stop.on);
 
 			}
 
 			return true;
 		}
 
+		return false;
 		return false;
 	};
 
@@ -7557,7 +8673,7 @@ function (tactic) {
 				};
 
 			// Clear change timer.
-			clearTimeout(that.timers.change);
+			that.timeline.clearTimeout(that.timers.change);
 
 			// Change loop state.
 			that.looped = false;
@@ -7572,6 +8688,20 @@ function (tactic) {
 				that.direction = that.params.direction;
 
 			}
+
+			// // Check if direction is correct (depending on new state), change it if not.
+			// if (state > that.state) {
+			//
+			// 	// Change direction to positive.
+			// 	that.direction = Math.abs(that.direction);
+			//
+			// }
+			// else if (state < that.state && that.direction > 0) {
+			//
+			// 	// Change direction to negative.
+			// 	that.direction = -Math.abs(that.direction);
+			//
+			// }
 
 			// Validate new state.
 			state = validateFramePosition(state);
@@ -7624,12 +8754,12 @@ function (tactic) {
 			// Define new current frame.
 			that.current = that.frames[that.state];
 
-			// Check if sequence has several frames and current frame duration is not equal to zero (means endless).
+			// Check if sequence has several frames and current frame duration is not e to zero (means endless).
 			// Check if sequence is not paused.
 			if (that.paused === false && that.stopped !== true && that.current && that.current.inited && that.frames.length > 1 && that.current.params.duration > 0) {
 
 				// Set timer to change frame.
-				that.timers.change = setTimeout(function () {
+				that.timers.change = that.timeline.setTimeout(function () {
 
 					// Check if sequence has to be paused if frame or loop count exceeded.
 					if ((!isNaN(that.params.pause.after.loop) && that.loops >= that.params.pause.after.loop) || (!isNaN(that.params.pause.after.frame) && that.changes >= that.params.pause.after.frame)) {
@@ -7659,17 +8789,6 @@ function (tactic) {
 
 			}
 
-			// Check if sequence doesn't have previous frame (if just started).
-			// Check if frame contents is identical to previous or frame was not changed.
-			// NB! This may increase CPU usage.
-			// Feature is disabled in this case, best practice is to make comparison in content editor.
-			if (this.current && this.previous && this.previous.hash === this.current.hash) {
-
-				// Set repeat flag.
-				that.repeated = true;
-
-			}
-
 			// Check if current state was defined.
 			if (that.current) {
 
@@ -7683,26 +8802,28 @@ function (tactic) {
 						 */
 						layer = this;
 
-					// Clear enter timer.
-					clearTimeout(layer.timers.enter);
+					// // Clear enter timer.
+					// layer.timeline.clearTimeout(layer.timers.enter);
+					//
+					// // Set timeout to five time to elements to append.
+					// layer.timers.enter = that.timeline.setTimeout(function () {
+					//
+					//
+					//
+					// }, 0);
 
-					// Set timeout to five time to elements to append.
-					layer.timers.enter = setTimeout(function () {
+					// Indicate that layer is entered.
+					layer.entered = true;
 
-						// Indicate that layer is entered.
-						layer.entered = true;
+					// Apply callback function.
+					layer.trigger({
 
-						// Apply callback function.
-						layer.trigger({
+						/**
+						 * @type {String}
+						 */
+						type: 'enter'
 
-							/**
-							 * @type {String}
-							 */
-							type: 'enter'
-
-						});
-
-					}, 0);
+					});
 
 				}, true);
 
@@ -7721,26 +8842,28 @@ function (tactic) {
 						 */
 						layer = this;
 
-					// Clear leave timer.
-					clearTimeout(layer.timers.leave);
+					// // Clear leave timer.
+					// layer.timeline.clearTimeout(layer.timers.leave);
+					//
+					// // Set timeout to five time to elements to append.
+					// layer.timers.leave = that.timeline.setTimeout(function () {
+					//
+					//
+					//
+					// }, 0);
 
-					// Set timeout to five time to elements to append.
-					layer.timers.leave = setTimeout(function () {
+					// Apply callback function.
+					layer.trigger({
 
-						// Apply callback function.
-						layer.trigger({
+						/**
+						 * @type {String}
+						 */
+						type: 'leave'
 
-							/**
-							 * @type {String}
-							 */
-							type: 'leave'
+					});
 
-						});
-
-						// Indicate that layer is no longer entered.
-						layer.entered = false;
-
-					}, 0);
+					// Indicate that layer is no longer entered.
+					layer.entered = false;
 
 				}, true);
 
@@ -7981,7 +9104,7 @@ function (tactic) {
 
 			// Set timeout on asset source placement.
 			// Pause is required to give time to DOM elements to append.
-			that.timers.load = setTimeout(function () {
+			that.timers.load = that.timeline.setTimeout(function () {
 
 				// Trigger event.
 				that.trigger({
@@ -8021,7 +9144,7 @@ function (tactic) {
 	 * @param {String} key - Component key.
 	 * @param {Object} data - Component data.
 	 * @param {Function} [callback] - Complete event handler.
-	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
+	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
 	 * @param {Object} [override] - Component parameters.
 	 * @param {Number} [index] - Layer index (if is part of array).
 	 */
@@ -8102,6 +9225,9 @@ function (tactic) {
 	 * @return {Boolean}
 	 */
 	layers.TextLayer.prototype.initProps = function (data) {
+
+		// Execute initial function.
+		layers.AbstractLayer.prototype.initProps.apply(this, [data]);
 
 		var
 
@@ -8231,8 +9357,20 @@ function (tactic) {
 		// Check if layer is not yet initialised.
 		if (!that.inited) {
 
-			// Check target and data.
-			if (utils.isArray(data) && data.length > 0) {
+			// Check if data feeding is enabled.
+			if (that.feed.enabled) {
+
+				// Set sources.
+				that.sources = [
+					{
+						text: utils.isTypeOf(utils.isString, that.feed.value, '')
+					}
+				];
+
+			}
+
+			// Check if data provided.
+			else if (utils.isArray(data) && data.length > 0) {
 
 				// Loop text sources descendingly to check if sources are valid.
 				for (var i = data.length - 1; i >= 0; i--) {
@@ -8338,7 +9476,7 @@ function (tactic) {
 
 						// Set timeout on asset source placement.
 						// Pause is required to give time to DOM elements to append.
-						that.timers.load = setTimeout(function () {
+						that.timers.load = that.timeline.setTimeout(function () {
 
 							// Loop text sources descendingly to find out what source is the best match for container size.
 							for (var i = 0; i < that.sources.length; i++) {
@@ -8406,20 +9544,18 @@ function (tactic) {
 				if (that.params.wait.fonts) {
 
 					// Watch for font load.
-					utils.watchFont(null, that.target,
+					utils.watchFont(that.selector, null,
 
 						/**
-						 * @param {String} fontName
+						 * @param {String} fontKey
 						 * @param {Boolean} isLoaded
 						 */
-						function (fontName, isLoaded) {
+						function (fontKey, isLoaded) {
 
 							// Complete load.
 							assetLoadHandler();
 
-						},
-
-						that.params.wait.timeout);
+						}, that.target, that.params.wait.timeout);
 
 				} else {
 
@@ -8515,7 +9651,7 @@ function (tactic) {
 	 * @param {String} key - Component key.
 	 * @param {Object} data - Component data.
 	 * @param {Function} [callback] - Complete event handler.
-	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.AdaptiveLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
+	 * @param {(tactic.builder.layers.AbstractLayer|tactic.builder.layers.BannerLayer|tactic.builder.layers.SequenceLayer|tactic.builder.layers.FrameLayer|tactic.builder.layers.ImageLayer|tactic.builder.layers.TextLayer|tactic.builder.layers.VideoLayer)} parent
 	 * @param {Object} [override] - Component parameters.
 	 * @param {Number} [index] - Layer index (if is part of array).
 	 */
@@ -8537,12 +9673,7 @@ function (tactic) {
 			/**
 			 * @type {tactic.builder.props.PositionProp}
 			 */
-			position: null,
-
-			/**
-			 * @type {tactic.builder.props.OrientationProp}
-			 */
-			orientation: null
+			position: null
 
 		};
 
@@ -8622,27 +9753,6 @@ function (tactic) {
 
 			// Position property will be initialised on asset creation, as it requires asset source width and height dimensions and layer parameters.
 
-			// Create new orientation property.
-			that.props.orientation = new props.OrientationProp(utils.isTypeOf(utils.isObject, data.orientation, {}));
-
-			// Initialise orientation property.
-			that.props.orientation.update(that.width(), that.height());
-
-			// Check if property is enabled.
-			if (that.props.orientation.enabled) {
-
-				// Add orientation attribute.
-				that.addAttr(that.props.orientation.name, {
-
-					/**
-					 * @type {String}
-					 */
-					name: that.props.orientation.name + '_' + that.props.orientation.value
-
-				});
-
-			}
-
 			return true;
 		}
 
@@ -8717,11 +9827,36 @@ function (tactic) {
 				scale: utils.isTypeOf(utils.isString, data.scale, 'fill'),
 
 				/**
-				 * Validate if image source has to be slideed at some value (source size multiplier).
+				 * Validate if image source has to be zoomed at some value (source size multiplier).
 				 * For example if you have slide in effect, and don't want to loose quality.
 				 * @type  {Number}
 				 */
 				ratio: Number(utils.isTypeOf(utils.isNumber, data.ratio, 1)),
+
+				// /**
+				//  * Check if minimal asset sizes has to be taken in consideration.
+				//  * @type  {Number}
+				//  */
+				// limit: Number(utils.isTypeOf(utils.isNumber, data.limit, 320))
+
+				/**
+				 * @type  {Object}
+				 */
+				limit: {
+
+					/**
+					 * Check if minimal asset size has to be taken in consideration.
+					 * @type  {Number}
+					 */
+					min: Number(utils.isTypeOf(utils.isNumber, utils.getObjectDeep(data, 'limit.min'), 320)),
+
+					/**
+					 * Check if maximum asset size has to be taken in consideration.
+					 * @type  {Number}
+					 */
+					max: Number(utils.isTypeOf(utils.isNumber, utils.getObjectDeep(data, 'limit.max'), 1920))
+
+				},
 
 				/**
 				 * Validate autoplay value.
@@ -8810,6 +9945,58 @@ function (tactic) {
 
 			};
 
+			// Check if ratio is not less than 1.
+			if (that.params.ratio < 1) that.params.ratio = 1;
+
+			return true;
+		}
+
+		return false;
+	};
+
+	/**
+	 * Initialise layer sources.
+	 *
+	 * @function
+	 * @param {Array} data
+	 * @return {Boolean}
+	 */
+	layers.VideoLayer.prototype.initSources = function (data) {
+
+		var
+
+			/**
+			 * @type {tactic.builder.layers.VideoLayer}
+			 */
+			that = this;
+
+		// Check if layer is not yet initialised.
+		if (!that.inited) {
+
+			// Check if data feeding is enabled.
+			if (that.feed.enabled) {
+
+				// Set sources.
+				that.sources = [
+					{
+						url: that.feed.value
+					}
+				];
+
+			}
+
+			// Check id data provided.
+			else if (utils.isArray(data) && data.length > 0) {
+
+				// Set sources.
+				that.sources = data;
+
+			} else {
+
+				that.sources = [];
+
+			}
+
 			return true;
 		}
 
@@ -8872,6 +10059,23 @@ function (tactic) {
 							}
 
 							that.asset.target.src = utils.getAssetUrl(that.asset.source);
+
+							// var
+							//
+							// 	/**
+							// 	 * Create new source element.
+							// 	 * @type {Element}
+							// 	 */
+							// 	source = document.createElement('source');
+							//
+							// // Set source URL.
+							// source.src = utils.getAssetUrl(that.asset.source);
+							//
+							// // Set source type.
+							// source.type = 'video/mp4';
+							//
+							// // Append source to asset target.
+							// that.asset.target.appendChild(source);
 
 						}
 
@@ -9151,7 +10355,7 @@ function (tactic) {
 				if (that.props.position.enabled) {
 
 					// Now, when we know appropriate asset source depending on scaling parameters, we can select appropriate size of the source.
-					that.asset.source = utils.getAssetSource(that.sources, that.props.position.width * that.params.ratio, that.props.position.height * that.params.ratio);
+					that.asset.source = utils.getAssetSource(that.sources, that.props.position.width * that.params.ratio, that.props.position.height * that.params.ratio, that.params.limit.min, that.params.limit.max);
 
 					// Add resize attribute to holder.
 					that.addAttr(that.props.position.name, {
@@ -9198,7 +10402,7 @@ function (tactic) {
 				} else {
 
 					// Now, when we know appropriate asset source depending on scaling parameters, we can select appropriate size of the source.
-					that.asset.source = utils.getAssetSource(that.sources, that.width() * that.params.ratio, that.height() * that.params.ratio);
+					that.asset.source = utils.getAssetSource(that.sources, that.width() * that.params.ratio, that.height() * that.params.ratio, that.params.limit.min, that.params.limit.max);
 
 				}
 
@@ -9364,8 +10568,20 @@ function (tactic) {
 		// Check if video is paused.
 		if (that.loaded && that.asset.target.paused) {
 
-			// Play video.
-			that.asset.target.play();
+			// Check if root banner is stopped.
+			if (!that.root.stopped) {
+
+				// Play video.
+				that.asset.target.play();
+
+			}
+
+			else {
+
+				// Stop video layer.
+				that.stop();
+
+			}
 
 			return true;
 		}

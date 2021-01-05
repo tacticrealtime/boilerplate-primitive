@@ -133,3 +133,8 @@
 /**
  * @namespace tactic.builder.layers
  */
+
+/**
+ * @namespace tactic.fonts
+ */
+

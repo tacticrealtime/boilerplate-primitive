@@ -10,7 +10,7 @@ The package can be also used as an example and guide for development of dynamic 
 ## Solution
 TACTIC™ Boilerplate allows to set dynamic creative data structure and see how data affects banner appearance at the same time. Boilerplate emulates application content (data) editor, so that the developer can build data structure, analyse content editor behaviour and develop banners at the same time, without the need to compile whole TACTIC™ application.
 
-Content editor provides basic data inputs, such as image or video uploaders, text inputs, drop downs, buttons etc. Use them to create content editor layout and data points. Boilerplate will provide this data for the banner, so you can change its appearance, behaviour, and place various assets into previously defined place holers.
+Content editor provides basic data inputs, such as image or video pickers, text inputs, drop downs, buttons etc. Use them to create content editor layout and data points. Boilerplate will provide this data for the banner, so you can change its appearance, behaviour, and place various assets into predefined placeholders.
 
 After you are done with your dynamic creative, upload it to TACTIC™ Application. We will analyse, validate and perform quality assurance for you. If no issues will be found, creative will become available for the dedicated brand in the application, and can be used to create new adverts.
 
@@ -27,12 +27,12 @@ You are free to use any kind of file structure within the package. Below is the 
 | scripts/vendor/tactic/builder.js | TACTIC™ Builder that help to place text, image and video assets into banner DOM. |
 | scripts/banner.js | Banner initialisation script. Compiles banner, sets event binders, tacking points and user interaction logic. |
 | styles/preset.css | Default CSS style preset for common HTML tags. |
-| styles/common.css | CSS styles that are common to all banner sizes. |
-| 580x400/index.html | Banner size wrapper that combines scripts, HTML and CSS. |
-| 580x400/fallback.png | Static fallback image. |
+| styles/style.css | CSS styles that are common to all banner sizes. |
+| 300x250.html | Banner size wrapper that combines scripts, HTML and CSS. |
+| 300x250.png | Static fallback image. |
 | assets/ | Folder to store banner assets like logotype, fonts and/ or any kind of other static assets to be used in the banner. |
-| tactic.js | TACTIC™ Library scripts. Loads creative bundle, advert data and network adapter. Script is included automatically while running creative locally with boilerplate environment and when creative package is uploaded to application. |
-| emulator.js | Script emulates TACTIC™ Library if banner is accessed locally without boilerplate environment. |
+| //crv-sdk.trtm.io/.../tactic.js | TACTIC™ Library scripts. Loads creative bundle, advert data and network adapter. Script is included automatically while running creative locally with boilerplate environment and when creative package is uploaded to application. |
+| //crv-sdk.trtm.io/.../emulator.js | Script emulates TACTIC™ Library if banner is accessed locally without boilerplate environment. |
 
 ## Installation
 First of all, install necessary development dependencies by running
@@ -124,7 +124,7 @@ Manifest file explains creative structure. It has to be located in creative's pa
 
 ## Content Editor
 Creative content editor `editor.html` provides various data inputs that you can use to give application user ability to edit dynamic content.
-For detailed content edtior example please see [this page](https://github.com/tacticrealtime/creative-editor/).
+For detailed content editor example please see [this page](https://github.com/tacticrealtime/creative-editor/).
 #### Base
 Use `block`, `block-label` and `block-group` tags to create content editor structure.
 ``` html
@@ -202,7 +202,7 @@ Use `color-picker` tag to give user ability to define color.
 ```
 
 ## API Methods
-JavaScript `tactic` namespace with container external methods is always available in the banner. Use it to open click tags, track events or perform any other ad network related actions without thinking about ad networks API differences.
+JavaScript `tactic` namespace with container external methods is always available in the banner. Use it to open click tags, track events or perform any other ad vendor related actions without thinking about ad vendors API differences.
 #### tactic.container.ready(callback : Function) : void
 ``` js
 // Wait for TACTIC Container initialisation ready state.
@@ -218,19 +218,19 @@ tactic.container.ready(function (data) {
 });
 ```
 #### tactic.container.clickThrough(url : String, [vars : Object], [params : Object]) : String
-Open specific destination with additional parameters. Ad netwrok click tag URL (tracker) will be merged with requested URL automatically.
+Open specific destination with additional parameters. Ad vendor click tag URL will be merged with requested URL automatically.
 ``` js
 tactic.container.clickThrough('https://www.yourdestination.com/', {
 
-    /**
+	/**
 	 * Indicate URL variables to be added to destination URL.
 	 * @type {String}
 	*/
-    utm_campaign: 'campaignName'
+	utm_campaign: 'campaignName'
 
 }, {
 
-    /**
+	/**
 	 * Indicate window target.
 	 * @type {String}
 	*/
@@ -243,34 +243,34 @@ tactic.container.clickThrough('https://www.yourdestination.com/', {
 	encode: true,
 
 	/**
-	 * Indicate if requested URL variables have to be merged with initial network variables. Default value is 'true'.
+	 * Indicate if requested URL variables have to be merged with initial ad vendor variables. Default value is 'true'.
 	 * @type {Boolean}
 	 */
 	merge: true
 
 });
 ```
-Open initial ad network click tag.
+Open initial ad vendor click tag.
 ``` js
 tactic.container.clickThrough(null);
 ```
 #### tactic.container.requestResize(width : Number, height : Number, [x : Number], [y : Number]) : Boolean
-Resize banner window (if supported by ad network). Will return 'true' on success.
+Resize banner window (if supported by ad vendor). Will return 'true' on success.
 ``` js
 tactic.container.requestResize(300, 600);
 ```
 #### tactic.container.requestExpand() : Boolean
-Request banner expand (if supported by ad network). Will return 'true' on success.
+Request banner expand (if supported by ad vendor). Will return 'true' on success.
 ``` js
 tactic.container.requestExpand();
 ```
 #### tactic.container.requestCollapse() : Boolean
-Request banner collapse (if supported by ad network). Will return 'true' on success.
+Request banner collapse (if supported by ad vendor). Will return 'true' on success.
 ``` js
 tactic.container.requestCollapse();
 ```
 #### tactic.container.requestClose() : Boolean
-Close banner (if supported by ad network). Will return 'true' on success.
+Close banner (if supported by ad vendor). Will return 'true' on success.
 ``` js
 tactic.container.requestClose();
 ```
@@ -441,7 +441,7 @@ var
 	 * Create new Banner layer.
 	 * @type {tactic.layers.BannerLayer}
 	 */
-	banner = new tactic.layers.BannerLayer('BANNER', data, function (event) {
+	banner = new tactic.layers.BannerLayer('BN', data, function (event) {
 
 		// Look for event type.
 		switch (event.type) {
@@ -471,11 +471,11 @@ var
 Inject text into banner's DOM element. Method will automatically resize text if it doesn't fit container bounds.
 ``` html
 <body>
-    <div data-key="TEXT_WRAPPER" style="width: 240px; height: 120px;">
+    <div data-key="TXT_WRAPPER" style="width: 240px; height: 120px;">
     	<table>
     		<tr>
-    			<td data-key="TEXT_HOLDER">
-						<div data-ket="TEXT"></div>
+    			<td data-key="TXT_HOLDER">
+					<div data-ket="TXT"></div>
     			</td>
     		</tr>
     	</table>
@@ -506,13 +506,13 @@ var
 			 * Identify text holder, it will be used to apply font size value while automatic text size adjustment.
 			 * @type {Array}
 			 */
-			holder: 'TEXT_HOLDER',
+			holder: 'TXT_HOLDER',
 
 			/**
 			 * Identify text wrapper, it will be used as text area size indicator while automatic text size adjustment.
 			 * @type {Array}
 			 */
-			wrapper: 'TEXT_WRAPPER',
+			wrapper: 'TXT_WRAPPER',
 
 			/**
 			 * Identify if text element has to be wrapper in additional HTML tags.
@@ -566,7 +566,7 @@ var
 	 * Create new Text layer.
 	 * @type {Text}
 	 */
-	layer = new tactic.layers.TextLayer('TEXT', data, function () {
+	layer = new tactic.layers.TextLayer('TXT', data, function () {
 
 		// Look for event type.
 		switch (event.type) {
@@ -594,7 +594,7 @@ var
 Inject image into banner's DOM element.
 ``` html
 <body>
-    <div date-key="BACKGROUND_IMAGE" style="width: 240px; height: 240px;"></div>
+    <div date-key="IMG" style="width: 240px; height: 240px;"></div>
 </body>
 ```
 ``` js
@@ -708,7 +708,7 @@ var
 	 * Create new Image layer.
 	 * @type {Text}
 	 */
-	layer = new tactic.layers.ImageLayer('BACKGROUND_IMAGE', data, function (event) {
+	layer = new tactic.layers.ImageLayer('IMG', data, function (event) {
 
 		// Look for event type.
 		switch (event.type) {
@@ -911,7 +911,7 @@ We provide a set of utilities that you are able to use to ease development of yo
 Wait for font load.
 ``` css
 @font-face {
-	font-family: 'font_regular';
+	font-family: 'font_light';
 	src:         url('../assets/fonts/opensans-regular.eot');
 	src:         url('../assets/fonts/opensans-regular.eot?#iefix') format('embedded-opentype'),
 	             url('../assets/fonts/opensans-regular.woff2') format('woff2'),
@@ -921,12 +921,12 @@ Wait for font load.
 	font-style:  normal;
 }
 
-*.font_regular {
-	font-family: 'font_regular', sans-serif;
+*.font_light {
+	font-family: 'font_light', sans-serif;
 }
 ```
 ``` js
-tactic.utils.watchFont('font_regular', function(font, success) {
+tactic.utils.watchFont('font_light', function(font, success) {
     // Check if load was successful.
     if (success) {
         // Output successful status to console.
@@ -942,7 +942,7 @@ var
 	/**
 	 * @type {String}
 	 */
-    rawText = 'The quick {foxColor} fox jumps over the lazy dog.',
+    rawText = 'The quick {foxColor} fox jumps overlay the lazy dog.',
 
 	/**
 	 * @type {Object}
@@ -964,7 +964,7 @@ var
 	 */
     replacedText = tactic.utils.replaceMacros(rawText, macros);
 
-// Log updated text to console, will output 'The quick brown fox jumps over the lazy dog.'.
+// Log updated text to console, will output 'The quick brown fox jumps overlay the lazy dog.'.
 console.log(replacedText);
 ```
 
@@ -1002,7 +1002,7 @@ Text is one of most problematic elements of the banner. Narrow formats have a la
 #### Image Asset Specifics
 Huge amount of various banner formats creates several problems for pixel-perfect fitment of dynamic images. While designing a template, you have to keep in mind that TACTIC™ offers several features for image positioning and cropping. Every image can be cropped and aligned for square, portrait and landscape formats independently.
 #### Animation
-Animation becomes very sensitive case for mobile devices because of high CPU usage. Some advertisers have strict limitations which have to be analysed before designing a template. Avoiding unnecessary animation will help to fit most of advertiser guidelines and increase user experience.
+Animation becomes very sensitive case for mobile devices because of high PPU usage. Some advertisers have strict limitations which have to be analysed before designing a template. Avoiding unnecessary animation will help to fit most of advertiser guidelines and increase user experience.
 #### Frames
 It is possible to use frames for any banner element in the creative. Frames can be switched automatically, by interaction with user, or both. We offer ready-made solution for frame controls in the Boilerplate package example.
 

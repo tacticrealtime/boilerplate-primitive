@@ -6,25 +6,21 @@
 * {
 
 	/**
-	 * Reset margins and paddings.
+	 * Reset default element styles.
 	 */
 	margin: 0;
 	padding: 0;
-
-	/**
-	 * Reset default element styles.
-	 */
 	position: relative;
 	zoom: 1;
 	border: none;
 	outline: none;
-	background: transparent;
+	background: none;
 	border-spacing: 0;
 	list-style: none;
 	font-style: normal;
 
 	/**
-	 * Inherit styles for better dynamic control.
+	 * Inherit most important styles for better controls.
 	 */
 	border-collapse: inherit;
 	vertical-align: inherit;
@@ -38,6 +34,7 @@
 	line-height: inherit;
 	visibility: inherit;
 	cursor: inherit;
+	/*z-index: inherit;*/
 
 	/**
 	 * Ignore automatic font size adjustment.
@@ -55,11 +52,10 @@
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
-
 }
 
 /*
- * Global style defaults.
+ * Global defaults.
  * ------------------------------------------------------------------------------------------------------------------
  */
 
@@ -76,16 +72,6 @@ body {
 	vertical-align: middle;
 	text-align: center;
 	font-family: "Lucida Grande", sans-serif;
-}
-
-body.ready {
-	visibility: visible !important;
-}
-
-div, ul, li {
-	position: absolute;
-	width: 100%;
-	height: 100%;
 }
 
 *.relative {
@@ -107,6 +93,11 @@ div, ul, li {
 	visibility: hidden;
 }
 
+*.ready,
+*.visible {
+	visibility: visible;
+}
+
 div.table {
 	display: table;
 }
@@ -121,8 +112,16 @@ div.row {
 	display: table-row;
 }
 
-span {
-	display: block;
+div, ul, li {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+img,
+svg,
+video {
+	position: absolute;
 }
 
 q:before,
@@ -130,18 +129,57 @@ q:after {
 	content: normal;
 }
 
-h1, h2, h3, h4, h5, h6, p, q, em {
-	line-height: normal;
-	vertical-align: baseline;
-}
-
-a {
-	text-decoration: underline;
-}
-
 body, a, button {
 	cursor: pointer;
 }
+
+a {
+	text-decoration: none;
+}
+
+*.gesture a {
+	text-decoration: underline;
+}
+
+u {
+	white-space: nowrap;
+}
+
+var br {
+	display: none;
+}
+
+p {
+	display: inline-block;
+	vertical-align: baseline;
+}
+
+p span {
+	display: inline;
+}
+
+small {
+	font-size: 0.75em;
+}
+
+big {
+	font-size: 1.5em;
+}
+
+sup {
+	font-size: 0.8em;
+	vertical-align: super;
+}
+
+sub {
+	font-size: 0.8em;
+	vertical-align: text-bottom;
+}
+
+/*
+ * Fallback replace.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
 
 #fallback, *.fallback,
 #fallback img, *.fallback img {
@@ -155,32 +193,16 @@ body, a, button {
  * ------------------------------------------------------------------------------------------------------------------
  */
 
-*.no_animation,
-*.no_animation * {
+*.animation_disabled,
+*.animation_disabled * {
 	animation: none !important;
 	transition: none !important;
 }
 
-*.no_animation,
-*.no_animation *,
-*.no_animation_duration,
-*.no_animation_duration * {
+*.animation_disabled,
+*.animation_disabled *,
+*.animation_skipped,
+*.animation_skipped * {
 	animation-duration: .0s !important;
 	transition-duration: .0s !important;
-}
-
-/*
- * Debug mode styles.
- * ------------------------------------------------------------------------------------------------------------------
- */
-
-.mode_debug,
-.mode_debug [data-key]:not(span):not(img):not(video) {
-	box-shadow: inset 0 0 0 2px rgba(0, 255, 255, 0.5);
-}
-
-.mode_debug span,
-.mode_debug img,
-.mode_debug video {
-	box-shadow: inset 0 0 0 2px rgba(255, 0, 255, 0.5);
 }

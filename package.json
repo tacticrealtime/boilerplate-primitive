@@ -6,7 +6,7 @@
     "creative-packager": "github:tacticrealtime/creative-packager",
     "creative-validator": "github:tacticrealtime/creative-validator",
     "fallback-generator": "github:tacticrealtime/fallback-generator",
-    "http-server": "^0.11.1"
+    "http-server": "^0.12.3"
   },
   "scripts": {
     "validate": "./node_modules/creative-validator/bin/creative-validator.js . debug",
