@@ -6,7 +6,7 @@
     "creative-packager": "github:tacticrealtime/creative-packager",
     "creative-validator": "github:tacticrealtime/creative-validator",
     "fallback-generator": "github:tacticrealtime/fallback-generator",
-    "http-server": "^0.12.3"
+    "http-server": "^14.1.0"
   },
   "scripts": {
     "validate": "./node_modules/creative-validator/bin/creative-validator.js . debug",
@@ -14,12 +14,18 @@
     "validate-security": "./node_modules/creative-validator/bin/security-validator.js",
     "validate-preview": "./node_modules/creative-validator/bin/preview-validator.js",
     "fallback": "./node_modules/fallback-generator/generator.js",
-    "min": "./node_modules/creative-minifier/index.js --replace-links --globs !node_modules/* --globs !editor.html --globs !./index.html",
+    "min": "./node_modules/creative-minifier/index.js --replace-links --globs !node_modules/* --globs !sources/* --globs !editor.html --globs !./index.html --globs !./preview.html",
     "zip": "./node_modules/creative-packager/index.js -n $npm_package_name -d",
     "minzip": "npm run min && npm run zip",
-    "serve": "./node_modules/http-server/bin/http-server ./ -a 127.0.0.1 --cors -o -c-1"
+    "serve": "./node_modules/http-server/bin/http-server ./ -a 127.0.0.1 --cors -o -c-1",
+    "watch": "sass --watch styles/main.scss:styles/style.css styles/preview.scss:styles/preview.css"
   },
   "private": true,
   "author": "TACTIC™ Real-Time Marketing",
-  "license": "GPL-3.0-or-later"
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "ajv": "^5.5.2",
+    "puppeteer-core": "^2.1.1",
+    "sass": "^1.47.0"
+  }
 }

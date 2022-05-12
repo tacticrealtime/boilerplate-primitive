@@ -86,11 +86,16 @@ body {
 
 *.empty,
 *.disabled {
-	display: none;
+	display: none !important;
 }
 
 *.hidden {
 	visibility: hidden;
+	pointer-events: none;
+}
+
+*.hidden * {
+	pointer-events: none;
 }
 
 *.ready,

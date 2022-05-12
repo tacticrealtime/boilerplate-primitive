@@ -69,7 +69,13 @@
           "preset": {
             "params": {
               "scale": "fill",
+              "resize": {
+                "method": "holder",
+                "extend": 1
+              },
               "polite": false,
+              "blur": 0,
+              "quality": 80,
               "ratio": 1
             }
           },
@@ -152,6 +158,31 @@
             "woff",
             "woff2"
           ]
+        }
+      },
+      "params": {
+        "wait": {
+          "fonts": [
+            "font_regular", "font_italic", "font_bold", "font_bold_italic"
+          ],
+          "assets": []
+        },
+        "stop": {
+          "after": 30000
+        }
+      },
+      "macros": {
+        "var_1": {
+          "value": "${var_1}",
+          "global": true
+        },
+        "var_2": {
+          "value": "${var_2}",
+          "global": true
+        },
+        "var_3": {
+          "value": "${var_3}",
+          "global": true
         }
       },
       "layers": {
@@ -243,7 +274,7 @@
                       },
                       "sources": [
                         {
-                          "text": "I'm <em>dynamic creative</em> powered by TACTIC. My size is $[size]."
+                          "text": "It is <em>dynamic creative</em> powered by TACTIC. Banner size is $[size] pixels."
                         }
                       ]
                     },

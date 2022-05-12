@@ -5,7 +5,7 @@
  *
  * @author Anton Gorodnyanskiy
  * @date 09/12/2020
- * @edit 09/12/2020
+ * @edit 12/06/2022
  */
 
 (/**
@@ -113,25 +113,21 @@ function (tactic) {
 
 								// Check if Banner does not support CSS animation.
 								// Check if Banner is in capture mode.
-								if (layer.inanimate === true || layer.mode === 'capture') {
+								if (layer.inanimate === true || (['capture', 'capture-image', 'capture-gif'].indexOf(layer.props.mode.get()) !== -1)) {
 
-									// Add "animation_disabled" attribute to root layer in order to stop all transitions.
+									// Add "anim_no" attribute to root layer in order to stop all transitions.
 									// NB! Required for proper snapshot capture, as PhantomJS does not support CSS animations.
 									layer.addAttr('animation_disabled');
 
 								}
 
-								// Check if Banner is in capture mode, means snapshot has to be taken.
-								if (layer.mode === 'capture') {
+								// Check if Banner is in image capture mode, means snapshot can be taken on dedicated stopping frame.
+								if ((['capture', 'capture-image'].indexOf(layer.props.mode.get()) !== -1)) {
 
-									// Execute snapshot capture.
-									// Capture delay can be set in Banner parameters, default value is 3 seconds.
-									layer.capture();
+									// Stop banner (will display stopping frame).
+									layer.stop();
 
 								}
-
-								// Add "mode_debug" attribute to root layer in order to highlight layer bounds.
-								layer.addAttr(layer.mode);
 
 								// Add "ready" attribute to root layer. Will reveal banner contents.
 								layer.addAttr('ready');
@@ -146,31 +142,28 @@ function (tactic) {
 
 								break;
 
-							// In case Banner is in capture mode.
-							case ('capture'):
-
-								// Add "animation_skipped" attribute to root layer in order to remove animations.
-								layer.addAttr('animation_skipped');
-
-								// Stop banner.
-								layer.stop();
-
-								break;
-
 							// In case Banner is stopped.
 							// NB! Creative will stop automatically in 30 seconds. This is required by the most ad networks.
 							case ('stop'):
 
-								// Check if no user interaction spotted.
-								// If interaction happened, then we do not need to stop the banner.s
+								// Check if no user interaction spotted and banner is not in debug mode.
 								if (!layer.interacted) {
 
-									// Add "animation_skipped" attribute to root layer in order to make all transitions seamless.
+									// Add "anim_no_dur" attribute to root layer in order to make all transitions seamless.
 									layer.addAttr('animation_skipped');
 
-									// Pause all banner playbacks and sequences.
-									// Execute method recursively on all nested banner layers and frames.
-									layer.execute('stop', false);
+								}
+
+								// Pause all banner playbacks and sequences.
+								// Execute method recursively on all nested banner layers and frames.
+								// Ignore stop on parameter if in debug mode.
+								layer.execute('stop', false, [layer.interacted]);
+
+								// Check if Banner is in image capture mode.
+								if (['capture', 'capture-image'].indexOf(layer.props.mode.get()) !== -1) {
+
+									// Execute snapshot capture with a delay, in order to give time to load necessary assets.
+									layer.capture({ delay: 1000 });
 
 								}
 
@@ -215,6 +208,9 @@ function (tactic) {
 								// Check if layer is available.
 								// Will return false if sequenced and not on current frame.
 								if (layer.available()) {
+
+									// Add animation class to fade in.
+									layer.addAttrs('active');
 
 									// Remove "hidden" attribute.
 									layer.removeAttr('hidden');
@@ -304,7 +300,7 @@ function (tactic) {
 					// Create new Banner instance.
 					// Duplicate date in case it is banner clone.
 					// All further events and actions will be handled with callback handler.
-					window['BANNER'] = new tactic.builder.layers.BannerLayer('BANNER', data.banner, bannerEventHandler);
+					window.banner = new tactic.builder.layers.BannerLayer('BANNER', data.banner, bannerEventHandler);
 
 					// Bind click event on banner click.
 					// NB! This requires Banner instance to be initialised.
@@ -312,7 +308,7 @@ function (tactic) {
 
 						// Open click tag using TACTIC container.
 						// NB! It is important to not use window.open() in order to handle specific vendor click tag setup.
-						container.clickThrough(window['BANNER'].getClickTag().url);
+						container.clickThrough(window.banner.getClickTag().url);
 
 					});
 
