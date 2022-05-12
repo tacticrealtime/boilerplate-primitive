@@ -24,7 +24,7 @@
   "author": "TACTIC™ Real-Time Marketing",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "ajv": "^5.5.2",
+    "ajv": "^6.12.3",
     "puppeteer-core": "^2.1.1",
     "sass": "^1.47.0"
   }
