@@ -24,10 +24,10 @@ You are free to use any kind of file structure within the package. Below is the 
 | editor.html | Creative content editor structure. |
 | fallback.html | Responsive HTML fallback that is used for automatic fallback generation. |
 | scripts/vendor/tactic/library.js | Declaration of default TACTIC™ Library methods. |
-| scripts/vendor/tactic/builder.js | TACTIC™ Builder that help to place text, image and video assets into banner DOM. |
+| scripts/vendor/tactic/builder2.js | TACTIC™ Builder that help to place text, image and video assets into banner DOM. |
 | scripts/banner.js | Banner initialisation script. Compiles banner, sets event binders, tacking points and user interaction logic. |
 | styles/preset.css | Default CSS style preset for common HTML tags. |
-| styles/style.css | CSS styles that are common to all banner sizes. |
+| styles/layout.css | CSS styles that are common to all banner sizes. |
 | 300x250.html | Banner size wrapper that combines scripts, HTML and CSS. |
 | 300x250.png | Static fallback image. |
 | assets/ | Folder to store banner assets like logotype, fonts and/ or any kind of other static assets to be used in the banner. |
@@ -986,7 +986,7 @@ The Boilerplate package limitations are as follows:
 - Maximum package size is limited to 10MB.
 
 ## To-dos
- - Make JSON schema
+- Make JSON schema
 
 ## Licence
 https://tacticrealtime.com/license/sdk/

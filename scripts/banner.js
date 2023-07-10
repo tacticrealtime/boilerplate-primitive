@@ -1,11 +1,7 @@
 /**
  * TACTIC™ Creative Library
- * Copyright (C) 2020 TACTIC™ Real-Time Marketing <https://tacticrealtime.com/>
+ * Copyright (C) 2023 TACTIC™ Real-Time Marketing <https://tacticrealtime.com/>
  * Licensed under GNU GPL <https://tacticrealtime.com/license/sdk/>
- *
- * @author Anton Gorodnyanskiy
- * @date 09/12/2020
- * @edit 12/06/2022
  */
 
 (/**
@@ -24,16 +20,279 @@ function (tactic) {
 	var
 
 		/**
+		 * Identify end transition name depending on a browser.
+		 *
+		 * @function
+		 */
+		whichTransitionEndEvent = function () {
+
+			var
+
+				/**
+				 * @type {Element|Node}
+				 */
+				element = document.createElement('div'),
+
+				/**
+				 * @type {Object}
+				 */
+				handlers = {
+					'transition': 'transitionend',
+					'OTransition': 'oTransitionEnd',
+					'MozTransition': 'transitionend',
+					'WebkitTransition': 'webkitTransitionEnd'
+				};
+
+			for (var i in handlers) {
+				if (element.style[i] !== undefined) {
+					return handlers[i];
+				}
+			}
+
+		},
+
+		/**
+		 * @function
+		 * @param {tactic.builder.layers.AbstractLayer} layer
+		 * @param {String} anim_type
+		 */
+		applyLayerAnimation  = function (layer, anim_type) {
+			try {
+
+				// Look for layer key.
+				switch (anim_type) {
+
+					// In case it is root banner.
+					case ('in'):
+
+						// Loop all animations.
+						utils.each(layer.getAnims(),
+
+							/**
+							 * @param {Object} anim
+							 * @param {String} anim_key
+							 */
+							function (anim, anim_key) {
+
+								var
+
+									/**
+									 * @type {tactic.builder.layers.AbstractLayer}
+									 */
+									anim_layer = anim.target,
+
+									/**
+									 * @type {String}
+									 */
+									anim_name = anim.name,
+
+									/**
+									 * @type {Object}
+									 */
+									anim_end_event = anim_layer.events.anim_end;
+
+								// Check if animation end event exists.
+								if (anim_end_event) {
+
+									// Remove animation end event.
+									utils.removeEventSimple(anim_end_event.target, anim_end_event.type, anim_end_event.callback);
+
+								}
+
+								// Add animation class to fade in.
+								anim_layer.removeAttr(anim_name + '_out');
+
+								// Add animation class to fade in.
+								anim_layer.addAttr(anim_name + '_in');
+
+							}
+
+						);
+
+						break;
+
+					// In case it is root banner.
+					case ('out'):
+
+						// Loop all animations.
+						utils.each(layer.getAnims(),
+
+							/**
+							 * @param {Object} anim
+							 * @param {String} anim_key
+							 */
+							function (anim, anim_key) {
+
+								var
+
+									/**
+									 * @type {tactic.builder.layers.AbstractLayer}
+									 */
+									anim_layer = anim.target,
+
+									/**
+									 * @type {String}
+									 */
+									anim_name = anim.name,
+
+									/**
+									 * @type {Object}
+									 */
+									anim_end = anim_layer.events.anim_end,
+
+									/**
+									 * Remove animation attributes when transition ends.
+									 * @function
+									 */
+									removeAnimEndListener = function() {
+
+										// Check if animation end event exists.
+										if (anim_end) {
+
+											// Remove load event listener.
+											utils.removeEventSimple(anim_end.target, anim_end.type, anim_end.callback);
+
+										}
+
+									},
+
+									/**
+									 * Remove animation attributes when transition ends.
+									 * @function
+									 */
+									animEndHandler = function () {
+
+										removeAnimEndListener();
+
+										// Remove animation class to fade in.
+										anim_layer.removeAttr(anim_name + '_out');
+
+										// Add hidden attribute.
+										// anim_layer.addAttr('hidden');
+
+									};
+
+								// Clear animation end event listener.
+								removeAnimEndListener();
+
+								// Add animation class to fade in.
+								anim_layer.removeAttr(anim_name + '_in');
+
+								// Add animation class to fade in.
+								anim_layer.addAttr(anim_name + '_out');
+
+								// Listen for animation end event.
+								anim_layer.events.anim_end = utils.addEventSimple(anim_layer.target, whichTransitionEndEvent(), animEndHandler);
+
+							}
+
+						);
+
+						break;
+
+				}
+
+			} catch (e) {}
+		},
+
+		/**
+		 * @function
+		 * @param {tactic.builder.layers.AbstractLayer} layer
+		 */
+		emptyLayerHandler = function (layer) {
+			try {
+
+				// Add empty attribute to the frame layer, so other layers know the scope.
+				layer.addAttr('empty');
+
+				var
+
+					/**
+					 * @type {String}
+					 */
+					empty_key = layer.key,
+
+					/**
+					 * @type {tactic.builder.layers.AbstractLayer}
+					 */
+					empty_holder_layer = layer.sequence ? layer.sequence.frames[layer.frame] : layer.root.getLayer('CV', 2);
+
+				if (empty_holder_layer.enabled && layer.parent.enabled && layer.enabled) {
+
+					// Add empty layer class to the sequence.
+					empty_holder_layer.addAttr( empty_key + '_empty', { name: empty_key + '_empty', global: true });
+
+				}
+
+			} catch (e) {
+			}
+		},
+
+		/**
+		 * @function
+		 * @param {tactic.builder.layers.AbstractLayer} layer
+		 */
+		disabledLayerHandler = function (layer) {
+			try {
+
+				// Add disabled attribute to the frame layer, so other layers know the scope.
+				layer.addAttr('disabled');
+
+				var
+
+					/**
+					 * @type {String}
+					 */
+					disabled_key = layer.key,
+
+					/**
+					 * @type {tactic.builder.layers.AbstractLayer}
+					 */
+					disabled_holder_layer = layer.sequence ? layer.sequence.frames[layer.frame] : layer.root.getLayer('CV', 2);
+
+				if (disabled_holder_layer.enabled && layer.parent.enabled) {
+
+					// Add empty layer class to the sequence.
+					disabled_holder_layer.addAttr( disabled_key + '_disabled', { name: disabled_key + '_disabled', global: true });
+
+				}
+
+			} catch (e) {
+			}
+		},
+
+		/**
 		 * @function
 		 * @param {(Event)} event
 		 */
 		errorEventHandler = function (event) {
 
 			// Track local event.
-			container.trackEventNativeDef('log', 'error', 'BANNER');
+			container.trackEventNativeDef('log', 'error', 'ERR_ADVERT_CRITICAL');
 
 			// Show fallback image.
 			container.showFallback();
+
+		},
+
+		/**
+		 * @function
+		 * @param {tactic.builder.layers.AbstractLayer} layer
+		 * @param {String} [url] Alternative click tag URL.
+		 */
+		clickEventHandler = function (layer, url) {
+
+			var
+
+				/**
+				 * Get layer's click tag.
+				 * @type {Object}
+				 */
+				click_tag = layer.getClickTag(url);
+
+			// Open click tag using TACTIC container.
+			// NB! It is important to not to use window.open() in order to handle specific vendor click tag settings.
+			container.clickThrough(click_tag.url, click_tag.vars);
 
 		},
 
@@ -62,7 +321,7 @@ function (tactic) {
 				switch (layer.key) {
 
 					// In case it is root banner.
-					case ('BANNER'):
+					case ('BN'):
 
 						// Look for event type.
 						switch (event.type) {
@@ -77,18 +336,6 @@ function (tactic) {
 
 							// In case of layer build event (when layer data is parsed and new layer instance needs to be created).
 							case ('build'):
-
-								// Check if additional detail is passed.
-								// You are able to add new layer below and return it back to Banner constructor the way you want.
-								// If nothing returned to Banner constructor, Banner will try to create new layer automatically.
-								if (event.detail) {
-
-									// Look for layer key.
-									switch (event.detail.key) {
-
-									}
-
-								}
 
 								return;
 
@@ -111,34 +358,30 @@ function (tactic) {
 								// Execute method recursively on all nested banner layers and frames.
 								layer.execute('init', false);
 
-								// Check if Banner does not support CSS animation.
-								// Check if Banner is in capture mode.
-								if (layer.inanimate === true || (['capture', 'capture-image', 'capture-gif'].indexOf(layer.props.mode.get()) !== -1)) {
-
-									// Add "anim_no" attribute to root layer in order to stop all transitions.
-									// NB! Required for proper snapshot capture, as PhantomJS does not support CSS animations.
-									layer.addAttr('animation_disabled');
-
-								}
-
-								// Check if Banner is in image capture mode, means snapshot can be taken on dedicated stopping frame.
-								if ((['capture', 'capture-image'].indexOf(layer.props.mode.get()) !== -1)) {
-
-									// Stop banner (will display stopping frame).
-									layer.stop();
-
-								}
-
 								// Add "ready" attribute to root layer. Will reveal banner contents.
 								layer.addAttr('ready');
 
 								break;
 
-							// In case Banner is interacted.
-							case ('interaction'):
+							// In case if banner is resized.
+							case ('resize'):
 
-								// Remove "animation_skipped" attribute to root layer in order to reveal animations.
-								layer.removeAttr('animation_skipped');
+								// Check if banner is responsive.
+								if (container.NAME === 'RxR') {
+
+									// Hide banner.
+									layer.removeAttr('ready');
+
+									// Destroy all layers.
+									layer.execute('destroy', false);
+
+									// Initialise layers again.
+									layer.execute('init', false);
+
+									// Reveal banner.
+									layer.addAttr('ready');
+
+								}
 
 								break;
 
@@ -146,26 +389,9 @@ function (tactic) {
 							// NB! Creative will stop automatically in 30 seconds. This is required by the most ad networks.
 							case ('stop'):
 
-								// Check if no user interaction spotted and banner is not in debug mode.
-								if (!layer.interacted) {
-
-									// Add "anim_no_dur" attribute to root layer in order to make all transitions seamless.
-									layer.addAttr('animation_skipped');
-
-								}
-
 								// Pause all banner playbacks and sequences.
 								// Execute method recursively on all nested banner layers and frames.
-								// Ignore stop on parameter if in debug mode.
-								layer.execute('stop', false, [layer.interacted]);
-
-								// Check if Banner is in image capture mode.
-								if (['capture', 'capture-image'].indexOf(layer.props.mode.get()) !== -1) {
-
-									// Execute snapshot capture with a delay, in order to give time to load necessary assets.
-									layer.capture({ delay: 1000 });
-
-								}
+								layer.execute('stop', false);
 
 								break;
 
@@ -199,6 +425,33 @@ function (tactic) {
 
 								}
 
+								// Look for layers key.
+								switch (layer.key) {
+
+									// Look for click layer.
+									case 'CL':
+
+										// Bind banner click event on click layer.
+										// NB! This requires Banner instance to be initialised.
+										layer.events.click_custom = utils.addEventSimple(document.body, 'click', function () {
+
+											// Trigger click event, do not pass frame number.
+											clickEventHandler(layer);
+
+										});
+
+										break;
+
+								}
+
+								break;
+
+							// If layer was initialised.
+							case ('enabled'):
+
+								// Add "disabled" attribute to hide layer.
+								layer.removeAttr('disabled');
+
 								break;
 
 							// If layer was successfully loaded or entered.
@@ -212,16 +465,11 @@ function (tactic) {
 									// Add animation class to fade in.
 									layer.addAttrs('active');
 
-									// Remove "hidden" attribute.
+									// Remove hidden attribute.
 									layer.removeAttr('hidden');
 
-									// Check if layer has animation class.
-									if (utils.hasClass(layer.target, 'animate')) {
-
-										// Add animation attribute to fade in.
-										layer.addAttr('animate_in');
-
-									}
+									// Apply layer animation.
+									applyLayerAnimation(layer, 'in');
 
 								}
 
@@ -230,32 +478,28 @@ function (tactic) {
 							// If layer is entered.
 							case ('leave'):
 
-								// Add animation attribute to fade in.
-								layer.addAttr('animate_out');
+								// Apply layer animation.
+								applyLayerAnimation(layer, 'out');
+
+								// Remove active class.
+								layer.removeAttr('active');
+
+								// Remove debug class.
+								layer.removeAttr('debug');
 
 								break;
 
 							// If layer is empty.
 							case ('empty'):
 
-								// Add "empty" attribute to hide layer.
-								layer.addAttr('empty');
-
-								break;
-
-							// If layer was initialised.
-							case ('enabled'):
-
-								// Remove "disabled" attribute to show layer.
-								layer.removeAttr('disabled');
+								emptyLayerHandler(layer);
 
 								break;
 
 							// If layer is disabled.
 							case ('disabled'):
 
-								// Add "disabled" attribute to hide layer.
-								layer.addAttr('disabled');
+								disabledLayerHandler(layer);
 
 								break;
 
@@ -269,14 +513,12 @@ function (tactic) {
 
 		};
 
-	// Wait for TACTIC container initialisation ready state event.
+	// Wait for TACTIC container initialisation ready scope event.
 	// Start banner initialisation when container is ready, but wait with element build before fonts are loaded.
 	container.ready(
 
 		/**
 		 * @param {Object} data
-		 * @param {Object} data.editor
-		 * @param {Object} data.banner
 		 */
 		function (data) {
 
@@ -289,31 +531,7 @@ function (tactic) {
 			// Create new Banner instance(s).
 			// Include Banner instance to window namespace for easy access from console.
 			// All further events and actions will be handled with callback handler.
-			utils.each((['BANNER']),
-
-				/**
-				 * @param {String} key
-				 * @param {Number} count
-				 */
-				function (key, count) {
-
-					// Create new Banner instance.
-					// Duplicate date in case it is banner clone.
-					// All further events and actions will be handled with callback handler.
-					window.banner = new tactic.builder.layers.BannerLayer('BANNER', data.banner, bannerEventHandler);
-
-					// Bind click event on banner click.
-					// NB! This requires Banner instance to be initialised.
-					utils.addEventSimple(document.body, 'click', function () {
-
-						// Open click tag using TACTIC container.
-						// NB! It is important to not use window.open() in order to handle specific vendor click tag setup.
-						container.clickThrough(window.banner.getClickTag().url);
-
-					});
-
-				}
-			);
+			window.banner = new tactic.builder.layers.BannerLayer('BN', data.banner, bannerEventHandler);
 
 		}
 	);

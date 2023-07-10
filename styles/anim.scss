@@ -1,0 +1,62 @@
+
+/*
+ * Config.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+$speed_base: 1.0s;
+$speed_base_in: #{$speed_base};
+$speed_base_out: calc(#{$speed_base} / 2);
+
+/*
+ * Default animations.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+[data-key=CV] [class*=_anim] {
+	opacity: 0;
+}
+
+[data-key=CV] [class*=_anim][class*=_anim_in] {
+	transition: opacity #{$speed_base_in} ease .0s, transform #{$speed_base_in} ease .0s;
+	opacity: 1;
+}
+
+[data-key=CV] [class*=_anim][class*=_anim_out] {
+	transition: opacity #{$speed_base_out} ease .0s, transform #{$speed_base_out} ease .0s;
+	opacity: 0;
+}
+
+[data-key=CV] [class*=_anim][class*=_anim_skip]  {
+	transition: opacity .0s, transform .0s !important;
+}
+
+[data-key=CV] [class*=_anim][class*=_anim_out][class*=_anim_skip]  {
+	transition: opacity .0s .25s, transform .0s !important;
+}
+
+[data-key=CV] [class*=_anim][class*=_anim_out] * {
+	pointer-events: none;
+}
+
+/*
+ * Global animation overrides.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+*.anim_no,
+*.anim_no * {
+	animation: none !important;
+	transition: none !important;
+}
+
+*.anim_no,
+*.anim_no *,
+*.anim_no_dur,
+*.anim_no_dur * {
+	animation-duration: .0s !important;
+	transition-duration: .0s !important;
+}
+
+
+

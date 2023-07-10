@@ -1,0 +1,17 @@
+
+[data-key=CV].CV_tens_t0 [data-key=FG],
+[data-key=CV].CV_tens_t0 [data-key=MS] {
+  left: 2em;
+  top: 2em;
+  width: calc(100% - 14em);
+  height: calc(100% - 4em);
+  text-align: left;
+  vertical-align: top;
+}
+
+[data-key=CV].CV_tens_t0 [data-key=LG] {
+  width: 8em;
+  height: 2em;
+  right: 2em;
+  bottom: 2em;
+}

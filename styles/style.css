@@ -1,99 +1,599 @@
 /*
- * Global text sizes and element layout.
+ * Global style setup and inheritance.
  * ------------------------------------------------------------------------------------------------------------------
  */
-
-h1 span {
-	font-size: 1.6em;
+* {
+  /**
+   * Reset default element styles.
+   */
+  margin: 0;
+  padding: 0;
+  position: relative;
+  zoom: 1;
+  border: none;
+  outline: none;
+  background: none;
+  border-spacing: 0;
+  list-style: none;
+  font-style: normal;
+  /**
+   * Inherit most important styles for better controls.
+   */
+  border-collapse: inherit;
+  vertical-align: inherit;
+  text-align: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  color: inherit;
+  border-color: inherit;
+  text-decoration: inherit;
+  line-height: inherit;
+  visibility: inherit;
+  cursor: inherit;
+  /*z-index: inherit;*/
+  /**
+   * Ignore automatic font size adjustment.
+   */
+  -webkit-text-size-adjust: 100%;
 }
 
-p span {
-	font-size: 1em;
+/**
+ * Remove user select to prevent gesture issues.
+ */
+*:not(input):not(select):not(textarea) {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
-button {
-	padding: 0.8em 1.5em 0.7em 1.5em;
-	border-style: none;
-	border-radius: 5em;
-	line-height: 1;
+/*
+ * Global defaults.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: "Comic Sans MS";
+}
+
+body {
+  visibility: hidden;
+  cursor: pointer;
+  vertical-align: middle;
+  text-align: center;
+}
+
+*.relative {
+  position: relative;
+  width: auto;
+  height: auto;
+}
+
+*.inline {
+  display: inline-block;
+}
+
+*.empty,
+*.disabled {
+  display: none !important;
+}
+
+*.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+*.hidden * {
+  pointer-events: none;
+}
+
+*.ready,
+*.visible {
+  visibility: visible;
+}
+
+div.table {
+  display: table;
+}
+
+div.cell {
+  position: relative;
+  display: table-cell;
+}
+
+div.row {
+  position: relative;
+  display: table-row;
+}
+
+div, ul, li {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+img,
+svg,
+video {
+  position: absolute;
+}
+
+q:before,
+q:after {
+  content: normal;
+}
+
+body, a, button {
+  cursor: pointer;
 }
 
 a {
-	text-decoration: underline;
+  text-decoration: none;
+}
+
+*.gesture a {
+  text-decoration: underline;
+}
+
+u {
+  white-space: nowrap;
+}
+
+var br {
+  display: none;
+}
+
+ins {
+  word-break: break-word;
+}
+
+p {
+  display: inline-block;
+  vertical-align: baseline;
+  /*width: 100%;*/
+}
+
+p span,
+button span {
+  display: inline;
+}
+
+small {
+  font-size: 0.8em;
+}
+
+big {
+  font-size: 1.2em;
+}
+
+sup {
+  font-size: 0.5em;
+  vertical-align: super;
+  line-height: 1em;
+}
+
+sub {
+  font-size: 0.5em;
+  vertical-align: text-bottom;
+  line-height: 1em;
+}
+
+pre {
+  text-align: left !important;
+}
+
+pre:not(:empty) + br {
+  display: none;
+}
+
+hr {
+  display: block;
+  width: 100%;
+  height: 0.1em;
+  border: none;
+}
+
+hr:first-child {
+  margin-top: 0;
+}
+
+hr:last-child {
+  display: none;
+}
+
+hr + br {
+  display: none;
+}
+
+var:empty + br {
+  display: none;
+}
+
+/*
+ * Fallback replace.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+#fallback, *.fallback,
+#fallback img, *.fallback img {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/*
+ * Scale configuration.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+/*
+ * Common layout.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+h1 {
+  font-size: 2em;
+}
+
+p {
+  font-size: 1.2em;
 }
 
 button {
-	 text-align: center;
+  padding: 1rem 1.6rem 0.8rem 1.6rem;
+  border-style: none;
+  border-radius: 4rem;
+  line-height: 1;
+}
+
+a {
+  text-decoration: underline;
+}
+
+button {
+  text-align: center;
 }
 
 /*
  * Global element styles.
  * ------------------------------------------------------------------------------------------------------------------
  */
-
-[data-key=BACKGROUND] {
-	overflow: hidden;
-	opacity: 0.8;
+[data-key=BG] {
+  overflow: hidden;
+  opacity: 0.8;
 }
 
-[data-key=BACKGROUND] img {
-	position: absolute;
+[data-key=BG] img {
+  position: absolute;
 }
 
-[data-key=BACKGROUND] [data-key=BACKGROUND_BORDER] {
-	width: calc(100% - 4px);
-	height: calc(100% - 4px);
-	border-style: solid;
-	border-width: 2px;
+[data-key=BG] [data-key=BG_BORDER] {
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  border-style: solid;
+  border-width: 2px;
 }
 
-[data-key=FOREGROUND_OVERLAY] {
-	left: calc(-200% - 1em);
-	width: calc(400% + 2em);
-	top: calc(-200% - 2em);
-	height: calc(400% + 4em);
-	min-height: 2em;
+[data-key=FG_OVR] {
+  left: calc(-200% - 1em);
+  width: calc(400% + 2em);
+  top: calc(-200% - 2em);
+  height: calc(400% + 4em);
+  min-height: 2em;
 }
 
-[data-key=MESSAGE] {
-	vertical-align: top;
-	text-align: left;
+[data-key=MS] {
+  vertical-align: top;
+  text-align: left;
 }
 
-[data-key=MESSAGE] [data-key=MESSAGE_TEXT_TITLE] {
-	margin: 0 0 0.5em 0;
+[data-key=MS] [data-key=MS_TXT_0] {
+  margin: 0 0 0.5em 0;
 }
 
-[data-key=MESSAGE] [data-key=MESSAGE_TEXT_BUTTON] {
-	margin: 1em 0 0 0;
+[data-key=MS] [data-key=MS_TXT_2] {
+  margin: 1em 0 0 0;
+}
+
+[data-key=CV].CV_tens_t2 [data-key=FG],
+[data-key=CV].CV_tens_t2 [data-key=MS] {
+  left: 1.5em;
+  top: 2em;
+  width: calc(100% - 3em);
+  height: calc(60% - 4em);
+  text-align: left;
+  vertical-align: middle;
+}
+
+[data-key=CV].CV_tens_t2 [data-key=LG] {
+  width: calc(100% - 3em);
+  height: 2em;
+  right: 1.5em;
+  bottom: 2em;
+}
+
+[data-key=CV].CV_tens_t1 [data-key=FG],
+[data-key=CV].CV_tens_t1 [data-key=MS] {
+  left: 2em;
+  top: 2em;
+  width: calc(100% - 4em);
+  height: calc(60% - 4em);
+  text-align: left;
+  vertical-align: top;
+}
+
+[data-key=CV].CV_tens_t1 [data-key=LG] {
+  width: calc(100% - 4em);
+  height: 2em;
+  right: 2em;
+  bottom: 2em;
+}
+
+[data-key=CV].CV_tens_t0 [data-key=FG],
+[data-key=CV].CV_tens_t0 [data-key=MS] {
+  left: 2em;
+  top: 2em;
+  width: calc(100% - 14em);
+  height: calc(100% - 4em);
+  text-align: left;
+  vertical-align: top;
+}
+
+[data-key=CV].CV_tens_t0 [data-key=LG] {
+  width: 8em;
+  height: 2em;
+  right: 2em;
+  bottom: 2em;
+}
+
+[data-key=CV].CV_tens_w0 [data-key=FG],
+[data-key=CV].CV_tens_w0 [data-key=MS] {
+  left: 2em;
+  top: 2em;
+  width: calc(100% - 14em);
+  height: calc(100% - 4em);
+  text-align: left;
+  vertical-align: top;
+}
+
+[data-key=CV].CV_tens_w0 [data-key=LG] {
+  width: 8em;
+  height: 2em;
+  right: 2em;
+  bottom: 2em;
+}
+
+[data-key=CV].CV_tens_w1 [data-key=FG],
+[data-key=CV].CV_tens_w1 [data-key=MS] {
+  left: 2em;
+  top: 2em;
+  height: calc(100% - 4em);
+  width: calc(60% - 4em);
+  text-align: left;
+  vertical-align: top;
+}
+
+[data-key=CV].CV_tens_w1 [data-key=LG] {
+  width: 6em;
+  height: 1.5em;
+  right: 2em;
+  bottom: 2em;
+}
+
+[data-key=CV].CV_tens_w2 [data-key=FG],
+[data-key=CV].CV_tens_w2 [data-key=MS] {
+  left: 2em;
+  top: 1.5em;
+  height: calc(100% - 3em);
+  width: 55%;
+  text-align: left;
+  vertical-align: middle;
+}
+
+[data-key=CV].CV_tens_w2 [data-key=MS] br {
+  display: none;
+}
+
+[data-key=CV].CV_tens_w2 [data-key=LG] {
+  width: 7em;
+  height: 2em;
+  right: 2em;
+  bottom: 1.5em;
+}
+
+/*
+ * Global layer overrides.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+/*
+ * Global FG layer overrides.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+[data-key=CV] .FG_disabled .FG_ARE {
+  display: none;
 }
 
 /*
  * Global element colors.
  * ------------------------------------------------------------------------------------------------------------------
  */
-
-[data-key=BACKGROUND] {
-	background: #6746e5;
+[data-key=BG] {
+  background: #6746e5;
 }
 
-[data-key=BACKGROUND] [data-key=BACKGROUND_BORDER] {
-	border-color: rgba(0, 17, 204, 0.2);
+[data-key=BG] [data-key=BG_BORDER] {
+  border-color: rgba(0, 17, 204, 0.2);
 }
 
-[data-key=FOREGROUND] [data-key=FOREGROUND_OVERLAY] {
-	background: radial-gradient(rgba(0, 17, 204, 0.8), rgba(0, 17, 204, 0) 60%);
+[data-key=FG] [data-key=FG_OVR] {
+  background: radial-gradient(rgba(0, 17, 204, 0.8), rgba(0, 17, 204, 0) 60%);
 }
 
-[data-key=MESSAGE] {
-	color: #fff;
+[data-key=MS] {
+  color: #fff;
 }
 
-[data-key=MESSAGE] em {
-	color: #40ece2;
+[data-key=MS] em {
+  color: #40ece2;
 }
 
-[data-key=MESSAGE] button {
-	color: #0011cc;
-	background: #40ece2;
+[data-key=MS] button {
+  color: #0011cc;
+  background: #40ece2;
 }
+
+/*
+ * Config.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+/*
+ * Default animations.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+[data-key=CV] [class*=_anim] {
+  opacity: 0;
+}
+
+[data-key=CV] [class*=_anim][class*=_anim_in] {
+  transition: opacity 1s ease 0s, transform 1s ease 0s;
+  opacity: 1;
+}
+
+[data-key=CV] [class*=_anim][class*=_anim_out] {
+  transition: opacity calc(1s / 2) ease 0s, transform calc(1s / 2) ease 0s;
+  opacity: 0;
+}
+
+[data-key=CV] [class*=_anim][class*=_anim_skip] {
+  transition: opacity 0s, transform 0s !important;
+}
+
+[data-key=CV] [class*=_anim][class*=_anim_out][class*=_anim_skip] {
+  transition: opacity 0s 0.25s, transform 0s !important;
+}
+
+[data-key=CV] [class*=_anim][class*=_anim_out] * {
+  pointer-events: none;
+}
+
+/*
+ * Global animation overrides.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+*.anim_no,
+*.anim_no * {
+  animation: none !important;
+  transition: none !important;
+}
+
+*.anim_no,
+*.anim_no *,
+*.anim_no_dur,
+*.anim_no_dur * {
+  animation-duration: 0s !important;
+  transition-duration: 0s !important;
+}
+
+/*
+ * Debug mode styles.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+[class*=mode_debug_].mode_debug *:not([class=SQ]) .active .anchor_area:after,
+[class*=mode_debug_].mode_debug li.active .anchor_area:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100% - (2px * 2));
+  height: calc(100% - (2px * 2));
+  border: 2px dashed rgba(255, 0, 255, 0.25);
+}
+
+.mode_debug .debug_force.anchor,
+.mode_debug .debug.active.anchor,
+.mode_debug .debug.active .anchor.active {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 0, 0.25);
+}
+
+.mode_debug .debug_force.anchor_area:after,
+.mode_debug .debug.active.anchor_area:after,
+.mode_debug .debug.active .anchor_area:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100% - (2px * 2));
+  height: calc(100% - (2px * 2));
+  border: 2px dashed rgba(255, 255, 0, 0.25);
+}
+
+.mode_debug .debug_force.anchor_fill,
+.mode_debug .debug.active.anchor_fill,
+.mode_debug .debug.active .anchor_fill.active {
+  background: radial-gradient(farthest-side at top left, rgba(255, 255, 0, 0.25), transparent), radial-gradient(farthest-corner at bottom right, rgba(255, 255, 0, 0.25), transparent 40rem);
+}
+
+.mode_debug li.active .debug_force.anchor,
+.mode_debug li.active .debug.active.anchor,
+.mode_debug li.active .debug.active .anchor.active,
+.mode_debug .debug.active li.active .anchor.active {
+  box-shadow: inset 0 0 0 2px rgba(0, 255, 255, 0.25);
+}
+
+.mode_debug li.active .debug_force.anchor_area:after,
+.mode_debug li.active .debug.active.anchor_area:after,
+.mode_debug li.active .debug.active .anchor_area:after,
+.mode_debug .debug.active li.active .anchor_area:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100% - (2px * 2));
+  height: calc(100% - (2px * 2));
+  border: 2px dashed rgba(0, 255, 255, 0.25);
+}
+
+.mode_debug li.active .debug_force.anchor_fill,
+.mode_debug li.active .debug.active.anchor_fill,
+.mode_debug li.active .debug.active .anchor_fill.active,
+.mode_debug .debug.active li.active .anchor_fill.active {
+  background: radial-gradient(farthest-side at bottom left, rgba(0, 255, 255, 0.25), transparent), radial-gradient(farthest-corner at top right, rgba(0, 255, 255, 0.25), transparent 40rem);
+}
+
+.mode_debug .debug.active span,
+.mode_debug .debug.active span pre,
+.mode_debug .debug_force span,
+.mode_debug .debug_force span pre,
+.mode_debug .debug.active img,
+.mode_debug .debug_force img,
+.mode_debug .debug.active p svg,
+.mode_debug .debug_force p svg,
+.mode_debug .debug.active video,
+.mode_debug .debug_force video {
+  box-shadow: inset 0 0 0 2px rgba(255, 0, 255, 0.5);
+}
+
+[data-key=CV] [data-key*=SQ_]:not(.active) .anchor_area:after {
+  border: none !important;
+}
+
+/*
+ * Debug mode animations.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+.mode_debug .debug span,
+.mode_debug .debug span pre,
+.mode_debug .debug img,
+.mode_debug .debug p svg,
+.mode_debug .debug video,
+.mode_debug .anchor {
+  transition: box-shadow 1s ease 0s;
+}
+
+.mode_debug .anchor_fill {
+  transition: background-color 1s ease 0s;
+}
+
+/*# sourceMappingURL=style.css.map */

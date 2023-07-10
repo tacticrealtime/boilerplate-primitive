@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+	<!-- Emulate TACTIC container (if running banner locally, without Boilerplate environment) -->
+	<!-- NB! Scripts with "tactic-ignore" attribute won't be included into the package when uploaded to TACTIC application -->
+	<!-- NB! Scripts with "tactic-ignore" attribute won't compile in boilerplate environment -->
+	<script type="text/javascript" src="https://crv-sdk.trtm.io/library/container/1/emulator.min.js" tactic-ignore></script>
+
+	<!-- Emulate Ad Vendor Adapter -->
+	<!-- NB! Scripts with "tactic-ignore" attribute won't be included into the package when uploaded to TACTIC application -->
+	<!-- NB! Scripts with "tactic-ignore" attribute won't compile in boilerplate environment -->
+	<!--<script type="text/javascript" tactic-ignore>
+		window.emulate = {
+			NAME: 'RxR',
+			WIDTH: '100%',
+			HEIGHT: '100%'
+		};
+	</script>-->
+
+	<!-- Include banner builder scripts -->
+	<script type="text/javascript" src="https://crv-sdk.trtm.io/library/builder/2/builder-2.6.min.js"></script>
+
+	<!-- Include banner initialisation script -->
+	<script type="text/javascript" src="scripts/banner.js"></script>
+
+	<!-- Include styles that are common for all banner sizes -->
+	<link type="text/css" rel="stylesheet" href="styles/style.css">
+
+</head>
+<body>
+<div data-key="CV">
+
+	<div data-key="BG">
+		<div data-key="BG_ARE"></div>
+		<div data-key="BG_OBJ">
+			<div data-key="BG_IMG">
+				<div data-key="BG_IMG_0">
+					<!-- Dynamic Asset -->
+					<!-- <img /> -->
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div data-key="FG">
+		<div data-key="FG_OVR"></div>
+	</div>
+
+	<div data-key="MS">
+		<div data-key="MS_OBJ">
+			<div class="table">
+				<div data-key="MS_TXT" class="cell">
+					<div data-key="MS_BOX" class="relative inline">
+						<div data-key="MS_TXT_0" class="relative">
+							<!-- Dynamic Asset -->
+							<!-- <span></span> -->
+						</div>
+						<div data-key="MS_TXT_1" class="relative">
+							<!-- Dynamic Asset -->
+							<!-- <span></span> -->
+						</div>
+						<div data-key="MS_TXT_2" class="relative">
+							<!-- Dynamic Asset -->
+							<!-- <span></span> -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div data-key="LG">
+		<div data-key="LG_OBJ">
+			<div data-key="LG_IMG">
+				<div data-key="LG_IMG_0">
+					<!-- Dynamic Asset -->
+					<!-- <img /> -->
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div data-key="CL"></div>
+
+</div>
+</body>
+</html>

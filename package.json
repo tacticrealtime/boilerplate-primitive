@@ -14,7 +14,7 @@
     "validate-security": "./node_modules/creative-validator/bin/security-validator.js",
     "validate-preview": "./node_modules/creative-validator/bin/preview-validator.js",
     "fallback": "./node_modules/fallback-generator/generator.js",
-    "min": "./node_modules/creative-minifier/index.js --replace-links --globs !node_modules/* --globs !sources/* --globs !editor.html --globs !./index.html --globs !./preview.html",
+    "min": "sass styles/main.scss styles/style.css && sass styles/preset.scss styles/preset.css && sass styles/preview.scss styles/preview.css  && ./node_modules/creative-minifier/index.js --replace-links --globs !node_modules/* --globs !sources/* --globs !editor.html --globs !./index.html --globs !./preview.html --globs !./showcase.html",
     "zip": "./node_modules/creative-packager/index.js -n $npm_package_name -d",
     "minzip": "npm run min && npm run zip",
     "serve": "./node_modules/http-server/bin/http-server ./ -a 127.0.0.1 --cors -o -c-1",

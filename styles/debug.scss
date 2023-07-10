@@ -1,0 +1,122 @@
+
+/*
+ * Debug mode styles.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+$debug_stroke: 2px;
+
+[class*=mode_debug_].mode_debug *:not([class=SQ]) .active .anchor_area:after,
+[class*=mode_debug_].mode_debug li.active .anchor_area:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100% - (#{$debug_stroke} * 2));
+  height: calc(100% - (#{$debug_stroke} * 2));
+  border: #{$debug_stroke} dashed rgba(255, 0, 255, 0.25);
+}
+
+.mode_debug .debug_force.anchor,
+.mode_debug .debug.active.anchor,
+.mode_debug .debug.active .anchor.active {
+  box-shadow: inset 0 0 0 #{$debug_stroke} rgba(255, 255, 0, 0.25);
+}
+
+.mode_debug .debug_force.anchor_area:after,
+.mode_debug .debug.active.anchor_area:after,
+.mode_debug .debug.active .anchor_area:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100% - (#{$debug_stroke} * 2));
+  height: calc(100% - (#{$debug_stroke} * 2));
+  border: #{$debug_stroke} dashed rgba(255, 255, 0, 0.25);
+}
+
+.mode_debug .debug_force.anchor_fill,
+.mode_debug .debug.active.anchor_fill,
+.mode_debug .debug.active .anchor_fill.active {
+  background: radial-gradient(
+                  farthest-side at top left,
+                  rgba(255, 255, 0, 0.25),
+                  transparent
+  ),
+  radial-gradient(
+                  farthest-corner at bottom right,
+                  rgba(255, 255, 0, 0.25),
+                  transparent 40rem
+  );
+}
+
+.mode_debug li.active .debug_force.anchor,
+.mode_debug li.active .debug.active.anchor,
+.mode_debug li.active .debug.active .anchor.active,
+.mode_debug .debug.active li.active .anchor.active {
+  box-shadow: inset 0 0 0 #{$debug_stroke} rgba(0, 255, 255, 0.25);
+}
+
+.mode_debug li.active .debug_force.anchor_area:after,
+.mode_debug li.active .debug.active.anchor_area:after,
+.mode_debug li.active .debug.active .anchor_area:after,
+.mode_debug .debug.active li.active .anchor_area:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100% - (#{$debug_stroke} * 2));
+  height: calc(100% - (#{$debug_stroke} * 2));
+  border: #{$debug_stroke} dashed rgba(0, 255, 255, 0.25);
+}
+
+.mode_debug li.active .debug_force.anchor_fill,
+.mode_debug li.active .debug.active.anchor_fill,
+.mode_debug li.active .debug.active .anchor_fill.active,
+.mode_debug .debug.active li.active .anchor_fill.active {
+  background: radial-gradient(
+                  farthest-side at bottom left,
+                  rgba(0, 255, 255, 0.25),
+                  transparent
+  ),
+  radial-gradient(
+                  farthest-corner at top right,
+                  rgba(0, 255, 255, 0.25),
+                  transparent 40rem
+  );
+}
+
+.mode_debug .debug.active span,
+.mode_debug .debug.active span pre,
+.mode_debug .debug_force span,
+.mode_debug .debug_force span pre,
+.mode_debug .debug.active img,
+.mode_debug .debug_force img,
+.mode_debug .debug.active p svg,
+.mode_debug .debug_force p svg,
+.mode_debug .debug.active video,
+.mode_debug .debug_force video {
+  box-shadow: inset 0 0 0 #{$debug_stroke} rgba(255, 0, 255, 0.5);
+}
+
+[data-key=CV] [data-key*=SQ_]:not(.active) .anchor_area:after {
+  border: none !important;
+}
+
+/*
+ * Debug mode animations.
+ * ------------------------------------------------------------------------------------------------------------------
+ */
+
+.mode_debug .debug span,
+.mode_debug .debug span pre,
+.mode_debug .debug img,
+.mode_debug .debug p svg,
+.mode_debug .debug video,
+.mode_debug .anchor {
+  transition: box-shadow #{$speed_base} ease .0s;
+}
+
+.mode_debug .anchor_fill {
+  transition: background-color #{$speed_base} ease .0s;
+}
