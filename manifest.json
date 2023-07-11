@@ -73,17 +73,17 @@
       },
       "macros": {
         "var_1": {
-          "value": "${var_1}",
+          "value": "Value",
           "global": true,
           "attr": false
         },
         "var_2": {
-          "value": "${var_2}",
+          "value": "Value",
           "global": true,
           "attr": false
         },
         "var_3": {
-          "value": "${var_3}",
+          "value": "Value",
           "global": true,
           "attr": false
         }
@@ -243,7 +243,7 @@
               "type": "JointLayer",
               "macros": {
                 "BG_place": {
-                  "value": "fill",
+                  "value": "fit",
                   "global": true,
                   "attr": {
                     "name": true
@@ -260,51 +260,7 @@
                     "BG_IMG": {
                       "type": "JointLayer",
                       "layers": [
-                        {
-                          "type": "ImageLayer",
-                          "params": {
-                            "area": "BG_ARE",
-                            "wrapper": "BG",
-                            "holder": "BG_IMG",
-                            "scale": "$[BG_place]",
-                            "polite": false,
-                            "ratio": 2,
-                            "align": [
-                              "center",
-                              "middle"
-                            ],
-                            "format": "webp",
-                            "resize": {
-                              "method": "holder",
-                              "extend": 1
-                            },
-                            "quality": {
-                              "level": 80,
-                              "velocity": 0
-                            },
-                            "blur": 0,
-                            "sharpen": 0,
-                            "crop": [
-                              0,
-                              0,
-                              0,
-                              0
-                            ],
-                            "excepts": {}
-                          },
-                          "sources": [
-                            {
-                              "width": 4000,
-                              "height": 1988,
-                              "url": "https://img.trtm.io/library/1518/47168/1/6de2a92019b42a1f28cbde43cfec5dad/original.jpg"
-                            }
-                          ],
-                          "anims": {
-                            "BG_anim": {
-                              "name": "BG_anim"
-                            }
-                          }
-                        }
+                        null
                       ]
                     }
                   }
@@ -322,82 +278,87 @@
             "MS": {
               "type": "JointLayer",
               "layers": {
-                "MS_TXT": {
+                "MS_OBJ": {
                   "type": "JointLayer",
                   "layers": {
-                    "MS_TXT_0": {
-                      "type": "TextLayer",
-                      "params": {
-                        "holder": "MS_TXT",
-                        "wrapper": "MS",
-                        "tags": [
-                          "h1"
-                        ]
-                      },
-                      "attrs": {
-                        "font": {
-                          "name": "font_A_600"
-                        }
-                      },
-                      "sources": [
-                        {
-                          "text": "Hello, World!"
-                        }
-                      ],
-                      "anims": {
-                        "MS_anim": {
-                          "name": "MS_anim"
-                        }
-                      }
-                    },
-                    "MS_TXT_1": {
-                      "type": "TextLayer",
-                      "params": {
-                        "holder": "MS_TXT",
-                        "wrapper": "MS",
-                        "tags": [
-                          "p"
-                        ]
-                      },
-                      "attrs": {
-                        "font": {
-                          "name": "font_A_400"
-                        }
-                      },
-                      "sources": [
-                        {
-                          "text": "It is <em>dynamic creative</em> powered by TACTIC. Banner size is $[size] pixels."
-                        }
-                      ],
-                      "anims": {
-                        "MS_anim": {
-                          "name": "MS_anim"
-                        }
-                      }
-                    },
-                    "MS_TXT_2": {
-                      "type": "TextLayer",
-                      "params": {
-                        "holder": "MS_TXT",
-                        "wrapper": "MS",
-                        "tags": [
-                          "p",
-                          "button"
-                        ]
-                      },
-                      "attrs": {
-                        "font": {
-                          "name": "font_A_600"
-                        }
-                      },
-                      "sources": [
-                        {
-                          "text": "Learn More"
-                        }
-                      ],
-                      "anims": {
-                        "MS_anim": {
-                          "name": "MS_anim"
+                    "MS_TXT": {
+                      "type": "JointLayer",
+                      "layers": {
+                        "MS_TXT_0": {
+                          "type": "TextLayer",
+                          "params": {
+                            "holder": "MS_TXT",
+                            "wrapper": "MS",
+                            "tags": [
+                              "h1"
+                            ]
+                          },
+                          "attrs": {
+                            "font": {
+                              "name": "font_A_600"
+                            }
+                          },
+                          "sources": [
+                            {
+                              "text": "Hello, World!"
+                            }
+                          ],
+                          "anims": {
+                            "MS_anim": {
+                              "name": "MS_anim"
+                            }
+                          }
+                        },
+                        "MS_TXT_1": {
+                          "type": "TextLayer",
+                          "params": {
+                            "holder": "MS_TXT",
+                            "wrapper": "MS",
+                            "tags": [
+                              "p"
+                            ]
+                          },
+                          "attrs": {
+                            "font": {
+                              "name": "font_A_400"
+                            }
+                          },
+                          "sources": [
+                            {
+                              "text": "It is <em>dynamic creative</em> powered by TACTIC. Banner size is $[size] pixels."
+                            }
+                          ],
+                          "anims": {
+                            "MS_anim": {
+                              "name": "MS_anim"
+                            }
+                          }
+                        },
+                        "MS_TXT_2": {
+                          "type": "TextLayer",
+                          "params": {
+                            "holder": "MS_TXT",
+                            "wrapper": "MS",
+                            "tags": [
+                              "p",
+                              "button"
+                            ]
+                          },
+                          "attrs": {
+                            "font": {
+                              "name": "font_A_600"
+                            }
+                          },
+                          "sources": [
+                            {
+                              "text": "Learn More"
+                            }
+                          ],
+                          "anims": {
+                            "MS_anim": {
+                              "name": "MS_anim"
+                            }
+                          }
                         }
                       }
                     }

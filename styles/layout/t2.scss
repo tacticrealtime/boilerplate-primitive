@@ -1,17 +1,15 @@
 
 [data-key=CV].CV_tens_t2 [data-key=FG],
 [data-key=CV].CV_tens_t2 [data-key=MS] {
-  left: 1.5em;
-  top: 2em;
-  width: calc(100% - 3em);
-  height: calc(60% - 4em);
-  text-align: left;
-  vertical-align: middle;
+  left: #{$padding_normal};
+  top: #{$padding_normal};
+  width: calc(100% - (#{$padding_normal} * 2));
+  height: calc(45% - (#{$padding_normal} * 1));
 }
 
-[data-key=CV].CV_tens_t2 [data-key=LG] {
-  width: calc(100% - 3em);
-  height: 2em;
-  right: 1.5em;
-  bottom: 2em;
+[data-key=CV].CV_tens_t2 [data-key=BG].BG_place_fit [data-key=BG_OBJ] {
+  left: #{$padding_normal};
+  bottom: calc(#{$logo_height} + (#{$padding_normal} * 2) + 10%);
+  height: calc(100% - 45% - #{$logo_height} - (#{$padding_normal} * 3) - 10%);
+  width: calc(100% - (#{$padding_normal} * 2));
 }

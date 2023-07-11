@@ -260,135 +260,119 @@ button {
  * Global element styles.
  * ------------------------------------------------------------------------------------------------------------------
  */
+[data-key=CV] [data-key=LG] {
+  width: calc(1rem * 3 * 3.75);
+  height: calc(1rem * 3);
+  right: calc(1rem * 2);
+  bottom: calc(1rem * 2);
+}
+
 [data-key=BG] {
   overflow: hidden;
-  opacity: 0.8;
-}
-
-[data-key=BG] img {
-  position: absolute;
-}
-
-[data-key=BG] [data-key=BG_BORDER] {
-  width: calc(100% - 4px);
-  height: calc(100% - 4px);
-  border-style: solid;
-  border-width: 2px;
 }
 
 [data-key=FG_OVR] {
-  left: calc(-200% - 1em);
-  width: calc(400% + 2em);
-  top: calc(-200% - 2em);
-  height: calc(400% + 4em);
-  min-height: 2em;
+  left: calc(-200% - 1rem);
+  width: calc(400% + (1rem * 2));
+  top: calc(-200% - (1rem * 2));
+  height: calc(400% + 1rem * 4);
+  min-height: calc(1rem * 2);
 }
 
 [data-key=MS] {
-  vertical-align: top;
-  text-align: left;
-}
-
-[data-key=MS] [data-key=MS_TXT_0] {
-  margin: 0 0 0.5em 0;
-}
-
-[data-key=MS] [data-key=MS_TXT_2] {
-  margin: 1em 0 0 0;
-}
-
-[data-key=CV].CV_tens_t2 [data-key=FG],
-[data-key=CV].CV_tens_t2 [data-key=MS] {
-  left: 1.5em;
-  top: 2em;
-  width: calc(100% - 3em);
-  height: calc(60% - 4em);
   text-align: left;
   vertical-align: middle;
 }
 
-[data-key=CV].CV_tens_t2 [data-key=LG] {
-  width: calc(100% - 3em);
-  height: 2em;
-  right: 1.5em;
-  bottom: 2em;
+[data-key=MS] [data-key=MS_TXT_1] {
+  margin-top: calc(1rem * 1);
+}
+
+[data-key=MS] [data-key=MS_TXT_2] {
+  margin-top: calc(1rem * 2);
+}
+
+[data-key=CV].CV_tens_t2 [data-key=FG],
+[data-key=CV].CV_tens_t2 [data-key=MS] {
+  left: calc(1rem * 2);
+  top: calc(1rem * 2);
+  width: calc(100% - (calc(1rem * 2) * 2));
+  height: calc(45% - (calc(1rem * 2) * 1));
+}
+
+[data-key=CV].CV_tens_t2 [data-key=BG].BG_place_fit [data-key=BG_OBJ] {
+  left: calc(1rem * 2);
+  bottom: calc(calc(1rem * 3) + (calc(1rem * 2) * 2) + 10%);
+  height: calc(100% - 45% - calc(1rem * 3) - (calc(1rem * 2) * 3) - 10%);
+  width: calc(100% - (calc(1rem * 2) * 2));
 }
 
 [data-key=CV].CV_tens_t1 [data-key=FG],
 [data-key=CV].CV_tens_t1 [data-key=MS] {
-  left: 2em;
-  top: 2em;
-  width: calc(100% - 4em);
-  height: calc(60% - 4em);
-  text-align: left;
-  vertical-align: top;
+  left: calc(1rem * 2);
+  top: calc(1rem * 2);
+  width: calc(100% - (calc(1rem * 2) * 2));
+  height: calc(40% - (calc(1rem * 2) * 1));
 }
 
-[data-key=CV].CV_tens_t1 [data-key=LG] {
-  width: calc(100% - 4em);
-  height: 2em;
-  right: 2em;
-  bottom: 2em;
+[data-key=CV].CV_tens_t1 [data-key=BG].BG_place_fit [data-key=BG_OBJ] {
+  left: calc(1rem * 2);
+  bottom: calc(calc(1rem * 3) + (calc(1rem * 2) * 2) + 5%);
+  height: calc(100% - 40% - calc(1rem * 3) - (calc(1rem * 2) * 3) - 5%);
+  width: calc(100% - (calc(1rem * 2) * 2));
 }
 
 [data-key=CV].CV_tens_t0 [data-key=FG],
 [data-key=CV].CV_tens_t0 [data-key=MS] {
-  left: 2em;
-  top: 2em;
-  width: calc(100% - 14em);
-  height: calc(100% - 4em);
-  text-align: left;
-  vertical-align: top;
+  left: calc(1rem * 2);
+  top: calc(1rem * 2);
+  width: calc(100% - (calc(1rem * 2) * 2));
+  height: calc(40% - (calc(1rem * 2) * 1));
 }
 
-[data-key=CV].CV_tens_t0 [data-key=LG] {
-  width: 8em;
-  height: 2em;
-  right: 2em;
-  bottom: 2em;
+[data-key=CV].CV_tens_t0 [data-key=BG].BG_place_fit [data-key=BG_OBJ] {
+  left: calc(1rem * 2);
+  bottom: calc(calc(1rem * 3) + (calc(1rem * 2) * 2) + 5%);
+  height: calc(100% - 40% - calc(1rem * 3) - (calc(1rem * 2) * 3) - 5%);
+  width: calc(100% - (calc(1rem * 2) * 2));
 }
 
 [data-key=CV].CV_tens_w0 [data-key=FG],
 [data-key=CV].CV_tens_w0 [data-key=MS] {
-  left: 2em;
-  top: 2em;
-  width: calc(100% - 14em);
-  height: calc(100% - 4em);
-  text-align: left;
-  vertical-align: top;
+  left: calc(1rem * 2);
+  top: calc(1rem * 2);
+  width: 40%;
+  height: calc(100% - (calc(1rem * 2) * 2));
 }
 
-[data-key=CV].CV_tens_w0 [data-key=LG] {
-  width: 8em;
-  height: 2em;
-  right: 2em;
-  bottom: 2em;
+[data-key=CV].CV_tens_w0 [data-key=BG].BG_place_fit [data-key=BG_OBJ] {
+  right: calc(1rem * 2);
+  top: calc(calc(1rem * 2) + calc(1rem * 3) + (calc(1rem * 2) * 1) + 5%);
+  width: calc(60% - (calc(1rem * 2) * 3));
+  height: calc(100% - (calc(1rem * 3) * 2) - (calc(1rem * 2) * 4) - 10%);
 }
 
 [data-key=CV].CV_tens_w1 [data-key=FG],
 [data-key=CV].CV_tens_w1 [data-key=MS] {
-  left: 2em;
-  top: 2em;
-  height: calc(100% - 4em);
-  width: calc(60% - 4em);
-  text-align: left;
-  vertical-align: top;
+  left: calc(1rem * 2);
+  top: calc(1rem * 2);
+  height: calc(100% - (calc(1rem * 2) * 2));
+  width: 35%;
 }
 
-[data-key=CV].CV_tens_w1 [data-key=LG] {
-  width: 6em;
-  height: 1.5em;
-  right: 2em;
-  bottom: 2em;
+[data-key=CV].CV_tens_w1 [data-key=BG].BG_place_fit [data-key=BG_OBJ] {
+  right: calc(calc(1rem * 3 * 3.75) + (calc(1rem * 2) * 2));
+  top: calc(1rem * 2);
+  width: calc(100% - 35% - calc(1rem * 3 * 3.75) - (calc(1rem * 2) * 4));
+  height: calc(100% - (calc(1rem * 2) * 2));
 }
 
 [data-key=CV].CV_tens_w2 [data-key=FG],
 [data-key=CV].CV_tens_w2 [data-key=MS] {
-  left: 2em;
-  top: 1.5em;
-  height: calc(100% - 3em);
-  width: 55%;
-  text-align: left;
+  left: calc(1rem * 2);
+  top: calc(1rem * 1);
+  height: calc(100% - (calc(1rem * 1) * 2));
+  width: 40%;
   vertical-align: middle;
 }
 
@@ -396,11 +380,11 @@ button {
   display: none;
 }
 
-[data-key=CV].CV_tens_w2 [data-key=LG] {
-  width: 7em;
-  height: 2em;
-  right: 2em;
-  bottom: 1.5em;
+[data-key=CV].CV_tens_w2 [data-key=BG].BG_place_fit [data-key=BG_OBJ] {
+  right: calc(calc(1rem * 3 * 3.75) + (calc(1rem * 2) * 2) + 5%);
+  top: calc(1rem * 1);
+  width: calc(100% - 40% - 5% - calc(1rem * 3 * 3.75) - (calc(1rem * 2) * 4));
+  height: calc(100% - (calc(1rem * 1) * 2));
 }
 
 /*
@@ -408,18 +392,10 @@ button {
  * ------------------------------------------------------------------------------------------------------------------
  */
 /*
- * Global FG layer overrides.
- * ------------------------------------------------------------------------------------------------------------------
- */
-[data-key=CV] .FG_disabled .FG_ARE {
-  display: none;
-}
-
-/*
  * Global element colors.
  * ------------------------------------------------------------------------------------------------------------------
  */
-[data-key=BG] {
+[data-key=CV] {
   background: #6746e5;
 }
 

@@ -11,15 +11,15 @@
 			<block-group>
 
 				<block-field title="Title">
-					<text-area placeholder="Text" model="$data.banner.layers.CV.layers.MS.layers.MS_TXT.layers.MS_TXT_0.sources[0].text"></text-area>
+					<text-area placeholder="Text" model="$data.banner.layers.CV.layers.MS.layers.MS_OBJ.layers.MS_TXT.layers.MS_TXT_0.sources[0].text"></text-area>
 				</block-field>
 
-				<block-field title="Caption">
-					<text-area placeholder="Text" model="$data.banner.layers.CV.layers.MS.layers.MS_TXT.layers.MS_TXT_1.sources[0].text"></text-area>
+				<block-field title="Subtitle">
+					<text-area placeholder="Text" model="$data.banner.layers.CV.layers.MS.layers.MS_OBJ.layers.MS_TXT.layers.MS_TXT_1.sources[0].text"></text-area>
 				</block-field>
 
 				<block-field title="Button">
-					<text-field placeholder="Text" model="$data.banner.layers.CV.layers.MS.layers.MS_TXT.layers.MS_TXT_2.sources[0].text"></text-field>
+					<text-field placeholder="Text" model="$data.banner.layers.CV.layers.MS.layers.MS_OBJ.layers.MS_TXT.layers.MS_TXT_2.sources[0].text"></text-field>
 				</block-field>
 
 			</block-group>
@@ -29,7 +29,7 @@
 			<block-group>
 
 				<block-field title="Image">
-					<image-picker model="$data.banner.layers.CV.layers.BG.layers.BG_IMG"
+					<image-picker model="$data.banner.layers.CV.layers.BG.layers.BG_OBJ.layers.BG_IMG.layers[0]"
 								  settings="{defaults: $data.editor.defaults.BG_IMG.preset, cropping: { ratios: $data.editor.defaults.BG_IMG.ratios } }"
 								  no-crop="false" no-align="true" no-cover="false" no-load="false" no-excepts="false"
 								  no-excepts-orientation="true"></image-picker>
@@ -47,20 +47,42 @@
 
 		<block-group>
 
-			<block-label title="Landing Page"></block-label>
+			<block-label title="Destination"></block-label>
 
-			<block-field title="URL Declaration">
-				<toggle-button model="$data.banner.clicktag.override" on="Override DSP" off="Native"></toggle-button>
-				<block-info>
-					<p>
-						<small><q>Override ad server settings in order to define landing page destination URL from TACTIC content editor.</q></small>
-					</p>
-				</block-info>
-			</block-field>
+			<block-group>
 
-			<block-field title="Destination URL" ng-if="$data.banner.clicktag.override">
-				<text-field placeholder="URL" model="$data.banner.clicktag.url" pattern="https?\:\/\/.+"></text-field>
-			</block-field>
+				<block-field title="URL Declaration">
+					<toggle-button model="$data.banner.clicktag.override" on="Override" off="Disabled"></toggle-button>
+					<block-info>
+						<p>
+							<small><q>Override ad server settings in order to define landing page destination URL from TACTIC content editor.</q></small>
+						</p>
+					</block-info>
+				</block-field>
+
+				<block-field title="Destination URL" ng-if="$data.banner.clicktag.override">
+					<text-field placeholder="URL" model="$data.banner.clicktag.url" pattern="https?\:\/\/.+"></text-field>
+				</block-field>
+
+			</block-group>
+
+			<block-label title="Macros"></block-label>
+
+			<block-group>
+
+				<block-field title="$[var_1]">
+					<text-field placeholder="Value" model="$data.banner.macros.var_1.value"></text-field>
+				</block-field>
+
+				<block-field title="$[var_2]">
+					<text-field placeholder="Value" model="$data.banner.macros.var_2.value"></text-field>
+				</block-field>
+
+				<block-field title="$[var_3]">
+					<text-field placeholder="Value" model="$data.banner.macros.var_3.value"></text-field>
+				</block-field>
+
+			</block-group>
 
 		</block-group>
 

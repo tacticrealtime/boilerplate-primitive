@@ -4,5 +4,10 @@
  * ------------------------------------------------------------------------------------------------------------------
  */
 
+$scale: 1rem;
 
+$padding_small: calc(#{$scale} * 1);
+$padding_normal: calc(#{$scale} * 2);
 
+$logo_width: calc(#{$scale} * 3 * 3.75);
+$logo_height: calc(#{$scale} * 3);

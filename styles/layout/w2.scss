@@ -1,11 +1,10 @@
 
 [data-key=CV].CV_tens_w2 [data-key=FG],
 [data-key=CV].CV_tens_w2 [data-key=MS] {
-  left: 2em;
-  top: 1.5em;
-  height: calc(100% - 3em);
-  width: calc(55%);
-  text-align: left;
+  left: #{$padding_normal};
+  top: #{$padding_small};
+  height: calc(100% - (#{$padding_small} * 2));
+  width: 40%;
   vertical-align: middle;
 }
 
@@ -13,9 +12,9 @@
   display: none;
 }
 
-[data-key=CV].CV_tens_w2 [data-key=LG] {
-  width: 7em;
-  height: 2em;
-  right: 2em;
-  bottom: 1.5em;
+[data-key=CV].CV_tens_w2 [data-key=BG].BG_place_fit [data-key=BG_OBJ] {
+  right: calc(#{$logo_width} + (#{$padding_normal} * 2) + 5%);
+  top: #{$padding_small};
+  width: calc(100% - 40% - 5% - #{$logo_width} - (#{$padding_normal} * 4));
+  height: calc(100% - (#{$padding_small} * 2));
 }

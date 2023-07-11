@@ -31,39 +31,34 @@ button {
  * ------------------------------------------------------------------------------------------------------------------
  */
 
+[data-key=CV] [data-key=LG] {
+	width: #{$logo_width};
+	height: #{$logo_height};
+	right: #{$padding_normal};
+	bottom: #{$padding_normal};
+}
+
 [data-key=BG] {
 	overflow: hidden;
-	opacity: 0.8;
-}
-
-[data-key=BG] img {
-	position: absolute;
-}
-
-[data-key=BG] [data-key=BG_BORDER] {
-	width: calc(100% - 4px);
-	height: calc(100% - 4px);
-	border-style: solid;
-	border-width: 2px;
 }
 
 [data-key=FG_OVR] {
-	left: calc(-200% - 1em);
-	width: calc(400% + 2em);
-	top: calc(-200% - 2em);
-	height: calc(400% + 4em);
-	min-height: 2em;
+	left: calc(-200% - #{$scale});
+	width: calc(400% + (#{$scale} * 2));
+	top: calc(-200% - (#{$scale} * 2));
+	height: calc(400% + #{$scale} * 4);
+	min-height: calc(#{$scale} * 2);
 }
 
 [data-key=MS] {
-	vertical-align: top;
 	text-align: left;
+	vertical-align: middle;
 }
 
-[data-key=MS] [data-key=MS_TXT_0] {
-	margin: 0 0 0.5em 0;
+[data-key=MS] [data-key=MS_TXT_1] {
+	margin-top: #{$padding_small};
 }
 
 [data-key=MS] [data-key=MS_TXT_2] {
-	margin: 1em 0 0 0;
+	margin-top: #{$padding_normal};
 }
